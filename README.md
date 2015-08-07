@@ -1,2 +1,2 @@
-# quick-tanuki
+# tanuki
 An experiment
