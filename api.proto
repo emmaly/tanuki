@@ -73,6 +73,7 @@ message IdentityChallengeEncrypted {
 
 message IdentityChallenge {
   IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
+  bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
 }
 
 // IdentityRegistrationTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
