@@ -3,12 +3,20 @@ syntax = "proto3";
 package tanuki;
 
 
-// GENERIC
+// COMMON
 
 message StatusResponse {
   bool success = 1;
   uint32 error_type = 2;
   string error_description = 3;
+}
+
+message DomainTicket {
+  bytes sender_pubkey_hash = 1;
+  uint32 valid_after = 10;
+  uint32 valid_before = 11;
+  string sender_domain = 20;
+  string recipient_domain = 21;
 }
 
 
@@ -37,6 +45,86 @@ message Message {
 }
 
 
+// IDENTITY REGISTRATION
+
+service IdentityRegistration {
+  rpc Register(IdentityRequestEncrypted) returns (IdentityChallengeEncrypted) {}
+  rpc Prove(IdentityProveEncrypted) returns (IdentityTicketEncrypted) {}
+}
+
+// IdentityRequest message encrypted by the identity registrar instance's public key
+message IdentityRequestEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message IdentityRequest {
+  string domain = 1;
+  bytes nonce = 2;
+  bytes public_key = 3;
+  bytes some_sort_of_authentication_proof = 10;
+}
+
+// IdentityChallenge message encrypted by the requester's public key provided via IdentityRegister message
+message IdentityChallengeEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message IdentityChallenge {
+  IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
+  bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
+}
+
+// IdentityRegistrationTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
+// ... to be created _and_ consumed by the identity registrar instance itself
+message IdentityRegistrationTicketEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message IdentityRegistrationTicket {
+  uint32 timestamp = 1;
+  bytes nonce = 2;
+  IdentityRequest request = 3;
+}
+
+// IdentityProve message encrypted by the identity registrar instance's public key
+message IdentityProveEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message IdentityProve {
+  IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
+  bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
+  uint32 valid_after = 10;
+  uint32 valid_before = 11;
+}
+
+// IdentityTicketSigned message encrypted by the requester's public key provided via IdentityRegister message
+message IdentityTicketEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+// IdentityTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted
+message IdentityTicketSigned {
+  bytes signature = 1;
+  IdenityTicket ticket = 2;
+}
+
+message IdentityTicket {
+  bytes identity_registrar_instance_id = 1;
+  uint32 valid_after = 2;
+  uint32 valid_before = 3;
+  bytes sender_id = 10;
+  string sender_domain = 11;
+  string recipient_domain = 12;
+  // ??? does the lack of recipient ID mean that it can be used for many recipients at the recipient domain? (chicken/egg problem knowing recipient ID in advance anyway)
+}
+
+
 // MEDIATOR
 
 service Mediator {
@@ -44,10 +132,10 @@ service Mediator {
 }
 
 message MediatorHandshakeRequest {
-  string recipient = 1;
-  bytes domain_ticket = 10;
+  string saltyhash_of_recipient_common_name = 1;
+  DomainTicket sender_domain_ticket = 10;
   bytes sender_pubkey = 11;
-  uint32 ttl = 20;
+  uint32 requested_ttl = 20;
 }
 
 message MediatorHandshakeResponse {
@@ -75,6 +163,7 @@ service Forwarder {
 
 message ForwarderStorageRequest {
   bytes encrypted_message = 1;
+  bytes sender_domain_ticket = 10;
   string some_sort_of_recipient_identifier = 10;
   uint32 negotiated_ttl = 20;
 }
