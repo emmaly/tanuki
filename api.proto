@@ -122,7 +122,6 @@ message IdentityTicket {
   bytes sender_id = 10;
   string sender_domain = 11;
   string recipient_domain = 12;
-  // ??? does the lack of recipient ID mean that it can be used for many recipients at the recipient domain? (chicken/egg problem knowing recipient ID in advance anyway)
 }
 
 
