@@ -73,7 +73,6 @@ message IdentityChallengeEncrypted {
 
 message IdentityChallenge {
   IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
-  bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
 }
 
 // IdentityRegistrationTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
@@ -98,8 +97,9 @@ message IdentityProveEncrypted {
 message IdentityProve {
   IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
   bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
-  uint32 valid_after = 10;
-  uint32 valid_before = 11;
+  string domain = 10;
+  uint32 valid_after = 11;
+  uint32 valid_before = 12;
 }
 
 // IdentityTicketSigned message encrypted by the requester's public key provided via IdentityRegister message
