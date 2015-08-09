@@ -59,7 +59,7 @@ message IdentityRequestEncrypted {
 }
 
 message IdentityRequest {
-  string domain = 1;
+  string sender_domain = 1;
   bytes nonce = 2;
   bytes public_key = 3;
   bytes some_sort_of_authentication_proof = 10;
@@ -97,7 +97,7 @@ message IdentityProveEncrypted {
 message IdentityProve {
   IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
   bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
-  string domain = 10;
+  string recipient_domain = 10;
   uint32 valid_after = 11;
   uint32 valid_before = 12;
 }
