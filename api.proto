@@ -5,10 +5,16 @@ package tanuki;
 
 // COMMON
 
+message StatusResponseEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
 message StatusResponse {
-  bool success = 1;
-  uint32 error_type = 2;
-  string error_description = 3;
+  uint32 timestamp = 1;
+  bool success = 2;
+  uint32 error_type = 3;
+  string error_description = 4;
 }
 
 message DomainTicket {
@@ -48,74 +54,74 @@ message Message {
 // IDENTITY REGISTRATION
 
 service IdentityRegistration {
-  rpc Register(IdentityRequestEncrypted) returns (IdentityChallengeEncrypted) {}
-  rpc Prove(IdentityProveEncrypted) returns (IdentityTicketEncrypted) {}
+  rpc Register(IdentityRegistrationRequestEncrypted) returns (IdentityRegistrationChallengeEncrypted) {}
+  rpc Prove(IdentityRegistrationProveEncrypted) returns (IdentityRegistrationTicketEncrypted) {}
 }
 
-// IdentityRequest message encrypted by the identity registrar instance's public key
-message IdentityRequestEncrypted {
+// IdentityRegistrationRequest message encrypted by the identity registrar instance's public key
+message IdentityRegistrationRequestEncrypted {
   bytes payload = 1;
   bytes signature = 2;
 }
 
-message IdentityRequest {
+message IdentityRegistrationRequest {
   string sender_domain = 1;
   bytes nonce = 2;
   bytes public_key = 3;
   bytes some_sort_of_authentication_proof = 10;
 }
 
-// IdentityChallenge message encrypted by the requester's public key provided via IdentityRegister message
-message IdentityChallengeEncrypted {
+// IdentityRegistrationChallenge message encrypted by the requester's public key provided via IdentityRegistrationRequest message
+message IdentityRegistrationChallengeEncrypted {
   bytes payload = 1;
   bytes signature = 2;
 }
 
-message IdentityChallenge {
-  IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
+message IdentityRegistrationChallenge {
+  IdentityRegistrationChallengeTicketEncrypted encrypted_registration_ticket = 1;
   bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
 }
 
-// IdentityRegistrationTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
+// IdentityRegistrationChallengeTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
 // ... to be created _and_ consumed by the identity registrar instance itself
+message IdentityRegistrationChallengeTicketEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message IdentityRegistrationChallengeTicket {
+  uint32 timestamp = 1;
+  bytes nonce = 2;
+  IdentityRegistrationRequest request = 3;
+}
+
+// IdentityRegistrationProof message encrypted by the identity registrar instance's public key
+message IdentityRegistrationProofEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message IdentityRegistrationProof {
+  IdentityRegistrationChallengeTicketEncrypted encrypted_registration_ticket = 1;
+  bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
+  string recipient_domain = 10;
+  uint32 valid_after = 10;
+  uint32 valid_before = 11;
+}
+
+// IdentityRegistrationTicketSigned message encrypted by the requester's public key provided via IdentityRegistrationRequest message
 message IdentityRegistrationTicketEncrypted {
   bytes payload = 1;
   bytes signature = 2;
 }
 
-message IdentityRegistrationTicket {
-  uint32 timestamp = 1;
-  bytes nonce = 2;
-  IdentityRequest request = 3;
-}
-
-// IdentityProve message encrypted by the identity registrar instance's public key
-message IdentityProveEncrypted {
-  bytes payload = 1;
-  bytes signature = 2;
-}
-
-message IdentityProve {
-  IdentityRegistrationTicketEncrypted encrypted_registration_ticket = 1;
-  bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
-  string recipient_domain = 10;
-  uint32 valid_after = 11;
-  uint32 valid_before = 12;
-}
-
-// IdentityTicketSigned message encrypted by the requester's public key provided via IdentityRegister message
-message IdentityTicketEncrypted {
-  bytes payload = 1;
-  bytes signature = 2;
-}
-
-// IdentityTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted
-message IdentityTicketSigned {
+// IdentityRegistrationTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted
+message IdentityRegistrationTicketSigned {
   bytes signature = 1;
-  IdenityTicket ticket = 2;
+  IdenityRegistrationTicket ticket = 2;
 }
 
-message IdentityTicket {
+message IdentityRegistrationTicket {
   bytes identity_registrar_instance_id = 1;
   uint32 valid_after = 2;
   uint32 valid_before = 3;
@@ -125,53 +131,311 @@ message IdentityTicket {
 }
 
 
-// MEDIATOR
+// MEDIATION REGISTRATION
 
-service Mediator {
-  rpc Handshake(MediatorHandshakeRequest) returns (MediatorHandshakeResponse) {}
+service MediationRegistration {
+  rpc Register(MediationRegistrationRequestEncrypted) returns (MediationRegistrationChallengeEncrypted) {}
+  rpc Prove(MediationRegistrationProveEncrypted) returns (MediationRegistrationTicketEncrypted) {}
 }
 
-message MediatorHandshakeRequest {
-  string saltyhash_of_recipient_common_name = 1;
+// MediationRegistrationRequest message encrypted by the mediation registrar instance's public key
+message MediationRegistrationRequestEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRegistrationRequest {
+  string domain = 1;
+  bytes nonce = 2;
+  bytes public_key = 3;
+  bytes some_sort_of_authentication_proof = 10;
+}
+
+// MediationRegistrationChallenge message encrypted by the requester's public key provided via MediationRegistrationRequest message
+message MediationRegistrationChallengeEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRegistrationChallenge {
+  MediationRegistrationChallengeTicketEncrypted encrypted_registration_ticket = 1;
+  bytes mediation_registrar_signature_of_encrypted_registration_ticket = 2;
+  bytes cn_salt = 10;
+}
+
+// MediationRegistrationChallengeTicket message encrypted by the mediation registrar instance's super-secret MediationRegistrationTicket private key used only for this purpose
+// ... to be created _and_ consumed by the mediation registrar instance itself
+message MediationRegistrationChallengeTicketEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRegistrationChallengeTicket {
+  uint32 timestamp = 1;
+  bytes nonce = 2;
+  MediationRequest request = 3;
+}
+
+// MediationRegistrationProof message encrypted by the mediation registrar instance's public key
+message MediationRegistrationProofEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRegistrationProof {
+  MediationRegistrationChallengeTicketEncrypted encrypted_registration_ticket = 1;
+  bytes mediation_registrar_signature_of_encrypted_registration_ticket = 2;
+  uint32 valid_after = 10;
+  uint32 valid_before = 11;
+  CNSignTicketEncrypted cn_ticket = 20;
+  bytes bumble_notification_id = 30; // used by forwarders to announce new messages to recipients; if empty, no notification
+}
+
+// MediationRegistrationTicketSigned message encrypted by the requester's public key provided via MediationRegister message
+message MediationRegistrationTicketEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+// MediationRegistrationTicket signed by the mediation registrar instance's private key; ticket is signed, not encrypted
+message MediationRegistrationTicketSigned {
+  MediationTicket ticket = 1;
+  bytes signature = 2;
+}
+
+message MediationRegistrationTicket {
+  bytes mediation_registrar_instance_id = 1;
+  uint32 valid_after = 2;
+  uint32 valid_before = 3;
+  bytes id = 10;
+  string domain = 11;
+}
+
+// gets stored in the MediationRegistration pool-shared database
+message MediationRegistrationRecord {
+  bytes hashed_value = 1; // hash(hash(cn_hash),hash(domain_hash),mr_salt)
+  MediationRegistrationTicketSigned ticket = 2;
+  bytes pubkey = 10;
+}
+
+
+// COMMON NAME SIGNER
+
+service CNAuthority {
+  SignMediationRegistration(CNSignRequestEncrypted) returns (CNSignTicketEncrypted) {}
+}
+
+message CNSignRequestEncrypted {
+  bytes payload = 1; // CNSignRequest encrypted with CNAuthority instance's public key
+  bytes signature = 2;
+}
+
+message CNSignRequest {
+  bytes domain_hash = 1;
+  bytes cn_hash = 2; // hash of cn without domain
+  bytes mr_salt = 3;
+  bytes mr_signature = 4; // given to Recipient via MediationRegistrationChallenge field #2
+  bytes mr_pubkey = 5;
+  bytes some_sort_of_authentication_proof = 10;
+}
+
+message CNSignTicketEncrypted {
+  bytes payload = 1; // CNSignRequest encrypted with MediationRegistration instance's public key
+  bytes signature = 2; // signature by CNAuthority instance private key
+}
+
+message CNSignTicket {
+  uint32 timestamp = 1;
+  bytes cn_domain_salt_hash = 2; // hash(hash(cn_hash),hash(domain_hash),mr_salt)
+  bytes mr_salt = 3; // verbatum from CNSignRequest field #3
+  bytes mr_signature = 4; // verbatum from CNSignRequest field #4
+  uint32 valid_after = 10;
+  uint32 valid_before = 11;
+}
+
+
+// MEDIATION
+
+service Mediation {
+  rpc Request(MediationRequestEncrypted) returns (MediationTicketEncrypted) {}
+}
+
+message MediationRequestEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRequest {
+  string rcn_hash = 1;
   DomainTicket sender_domain_ticket = 10;
   bytes sender_pubkey = 11;
-  uint32 requested_ttl = 20;
+  bytes dh_public = 20; // generated by sender
+  uint32 requested_ttl = 30;
 }
 
-message MediatorHandshakeResponse {
-  bytes encrypted_response = 1;
+message MediationTicketEncrypted {
+  bytes payload = 1; // encrypted MediationTicketResponse by sender's public key
+  bytes signature = 2;
 }
 
-message MediatorHandshakeEncryptedResponse {
-  bytes signature = 1;
-  bytes key = 2;
-  uint32 timestamp = 10;
-  uint32 negotiated_ttl = 20;
+// visible to the Sender
+message MediationTicket {
+  bytes mediation_instance_id = 1;
+  uint32 timestamp = 2;
+  bytes sender_id = 3;
+  uint32 max_message_bytes = 4;
+  bytes dh_public = 5; // generated by mediation
+  MediationKeyTicketEncrypted ticket = 10;
+  bytes signature = 11;
 }
 
-message MediatorStoredRecord {
-  bytes user_pubkey = 1;
+// ??? this probably isn't a ticket
+message MediationKeyTicketEncrypted {
+  bytes payload = 1; // encrypted MediationKeyTicket by recipient's public key
+  bytes signature = 2;
+}
+
+// visible only to the Recipient
+message MediationKeyTicket {
+  bytes mediation_instance_id = 1;
+  uint32 timestamp = 2;
+  bytes sender_id = 3;
+  uint32 max_message_bytes = 4;
+  bytes dh_private = 5; // generated by mediation
 }
 
 
-// FORWARDER
+// MEDIATION FORWARDER
 
-service Forwarder {
-  rpc Store(ForwarderStorageRequest) returns (StatusResponse) {}
-  rpc Retrieve(ForwarderRetrievalRequest) returns (ForwarderRetrievalResponse) {}
+service MediationForwarder {
+  rpc Store(MediationForwarderStorageRequestEncrypted) returns (StatusResponseEncrypted) {}
 }
 
-message ForwarderStorageRequest {
-  bytes encrypted_message = 1;
-  bytes sender_domain_ticket = 10;
-  string some_sort_of_recipient_identifier = 10;
-  uint32 negotiated_ttl = 20;
+message MediationForwarderStorageRequestEncrypted {
+  bytes payload = 1; // encrypted ForwarderStorageRequest by forwarder instance's public key
+  bytes signature = 2;
 }
 
-message ForwarderRetrievalRequest {
-  string some_sort_of_recipient_identifier = 10;
+message MediationForwarderStorageRequest {
+  uint32 timestamp = 1;
+  bytes cn_domain_salt_hash = 2; // hash(hash(cn_hash),hash(domain_hash),mr_salt)
+  bytes sender_domain_ticket = 3;
+  MediationForwarderMessage message = 10;
 }
 
-message ForwarderRetrievalResponse {
-  bytes encrypted_message = 1;
+message MediationForwarderMessage {
+  repeated MediationTicket ticket = 1; // from MediationResponse field #10
+  repeated bytes dh_public = 2;
+  bytes encrypted_message = 3; // encrypted using DH from 2 or more MediationResponse messages (from multiple pools, etc) // needs to contain NEW DH values so we can kill off the mediated values! FIXME
+  // ??? what about expiration of this stored message?  need to know when to cull...
+}
+
+// ??? forwarder storage types?  remember that forwarder has its own keystore (created by MediationRegistration API) and will encrypt the resulting message with that.
+
+
+// MEDIATION RETRIEVER
+
+service MediationRetriever {
+  rpc Retrieve(MediationRetrieverRequestEncrypted) returns (MediationRetrieverResponseEncrypted) {}
+  rpc TicketRequest(MediationRetrieverTicketRequestEncrypted) returns (MediationRetrieverTicketChallengeEncrypted) {}
+  rpc TicketProve(MediationRetrieverTicketProofEncrypted) returns (MediationRetrieverTicketEncrypted) {}
+}
+
+// // Retrieval
+
+message MediationRetrieverRequestEncrypted {
+  bytes payload = 1; // encrypted MediationRetrieverRequest by retriever instance's public key
+  bytes signature = 2;
+}
+
+message MediationRetrieverRequest {
+  MediationRetrieverTicketSigned ticket = 1;
+  string nonce = 2;
+  bytes symmetric_key = 3; // the retriever will use this to encrypt the messages in the response
+  uint32 max_message_count = 10;
+}
+
+// encrypted MediationRetrieverResponse by MediationRetrieverRequest's field #3 symmetric_key
+message MediationRetrieverResponseEncrypted {
+  bytes payload = 1;
+}
+
+message MediationRetrieverResponse {
+  uint32 timestamp = 1;
+  string nonce = 2;
+  repeated MediationRetrieverMessage payload = 3; // does not need to be encrypted
+}
+
+message MediationRetrieverMessage {
+  bytes payload = 1; // encrypted with recipient's public key
+  bytes signature = 2; // signed by retriever instance's public key
+}
+
+// // Ticket creation
+
+message MediationRetrieverTicketRequestEncrypted {
+  bytes payload = 1; // encrypted MediationRetrieverRequest by retriever instance's public key
+  bytes signature = 2;
+}
+
+message MediationRetrieverTicketRequest {
+  string domain = 1;
+  string nonce = 2;
+  bytes public_key = 3;
+}
+
+// MediationRetrieverChallenge message encrypted by the requester's public key provided via MediationRetrieverRequest message
+message MediationRetrieverTicketChallengeEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRetrieverTicketChallenge {
+  IdentityRegistrationChallengeTicketEncrypted encrypted_registration_ticket = 1;
+  bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
+}
+
+// MediationRetrieverChallengeTicket message encrypted by the identity registrar instance's super-secret MediationRetrieverChallengeTicket private key used only for this purpose
+// ... to be created _and_ consumed by the identity registrar instance itself
+message MediationRetrieverTicketChallengeTicketEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRetrieverTicketChallengeTicket {
+  uint32 timestamp = 1;
+  bytes nonce = 2;
+  MediationRetrieverTicketRequest request = 3;
+}
+
+// MediationRetrieverProof message encrypted by the retriever instance's public key
+message MediationRetrieverTicketProofEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+message MediationRetrieverTicketProof {
+  MediationRetrieverChallengeTicketEncrypted encrypted_registration_ticket = 1;
+  bytes mediation_retriever_signature_of_encrypted_registration_ticket = 2;
+  uint32 valid_before = 11;
+}
+
+// MediationRetrieverTicketSigned message encrypted by the requester's public key provided via IMediationRetrieverTicketRequest message
+message MediationRetrieverTicketEncrypted {
+  bytes payload = 1;
+  bytes signature = 2;
+}
+
+// MediationRetrieverTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted
+message MediationRetrieverTicketSigned {
+  IdenityRegistrationTicket ticket = 1;
+  bytes signature = 2;
+}
+
+message MediationRetrieverTicket {
+  bytes mediation_retriever_instance_id = 1;
+  uint32 valid_after = 2;
+  uint32 valid_before = 3;
+  bytes public_key = 10; // public key that MR knows
+  string domain = 11;
 }
