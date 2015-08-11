@@ -9,17 +9,64 @@ It is generated from these files:
 	api.proto
 
 It has these top-level messages:
+	StatusResponseEncrypted
 	StatusResponse
+	DomainTicket
 	SubscriptionRequest
 	Envelope
 	Message
-	MediatorHandshakeRequest
-	MediatorHandshakeResponse
-	MediatorHandshakeEncryptedResponse
-	MediatorStoredRecord
-	ForwarderStorageRequest
-	ForwarderRetrievalRequest
-	ForwarderRetrievalResponse
+	IdentityRegistrationRequestEncrypted
+	IdentityRegistrationRequest
+	IdentityRegistrationChallengeEncrypted
+	IdentityRegistrationChallenge
+	IdentityRegistrationChallengeTicketEncrypted
+	IdentityRegistrationChallengeTicket
+	IdentityRegistrationProofEncrypted
+	IdentityRegistrationProof
+	IdentityRegistrationTicketEncrypted
+	IdentityRegistrationTicketSigned
+	IdentityRegistrationTicket
+	MediationRegistrationRequestEncrypted
+	MediationRegistrationRequest
+	MediationRegistrationChallengeEncrypted
+	MediationRegistrationChallenge
+	MediationRegistrationChallengeTicketEncrypted
+	MediationRegistrationChallengeTicket
+	MediationRegistrationProofEncrypted
+	MediationRegistrationProof
+	MediationRegistrationTicketEncrypted
+	MediationRegistrationTicketSigned
+	MediationRegistrationTicket
+	MediationRegistrationRecord
+	CNSignRequestEncrypted
+	CNSignRequest
+	CNSignTicketEncrypted
+	CNSignTicket
+	MediationRequestEncrypted
+	MediationRequest
+	MediationTicketEncrypted
+	MediationTicket
+	MediationKeyTicketEncrypted
+	MediationKeyTicket
+	MediationForwarderStorageRequestEncrypted
+	MediationForwarderStorageRequest
+	MediationForwarderMessage
+	MediationRetrieverRequestEncrypted
+	MediationRetrieverRequest
+	MediationRetrieverResponseEncrypted
+	MediationRetrieverResponse
+	MediationRetrieverMessage
+	MediationRetrieverTicketRequestEncrypted
+	MediationRetrieverTicketRequest
+	MediationRetrieverTicketChallengeEncrypted
+	MediationRetrieverTicketChallenge
+	MediationRetrieverTicketChallengeTicketEncrypted
+	MediationRetrieverTicketChallengeTicket
+	MediationRetrieverTicketProofEncrypted
+	MediationRetrieverTicketProof
+	MediationRetrieverTicketEncrypted
+	MediationRetrieverTicketSigned
+	MediationRetrieverTicket
 */
 package tanuki
 
@@ -37,15 +84,37 @@ var _ grpc.ClientConn
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 
+type StatusResponseEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *StatusResponseEncrypted) Reset()         { *m = StatusResponseEncrypted{} }
+func (m *StatusResponseEncrypted) String() string { return proto.CompactTextString(m) }
+func (*StatusResponseEncrypted) ProtoMessage()    {}
+
 type StatusResponse struct {
-	Success          bool   `protobuf:"varint,1,opt,name=success" json:"success,omitempty"`
-	ErrorType        uint32 `protobuf:"varint,2,opt,name=error_type" json:"error_type,omitempty"`
-	ErrorDescription string `protobuf:"bytes,3,opt,name=error_description" json:"error_description,omitempty"`
+	Timestamp        uint32 `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	Success          bool   `protobuf:"varint,2,opt,name=success" json:"success,omitempty"`
+	ErrorType        uint32 `protobuf:"varint,3,opt,name=error_type" json:"error_type,omitempty"`
+	ErrorDescription string `protobuf:"bytes,4,opt,name=error_description" json:"error_description,omitempty"`
 }
 
 func (m *StatusResponse) Reset()         { *m = StatusResponse{} }
 func (m *StatusResponse) String() string { return proto.CompactTextString(m) }
 func (*StatusResponse) ProtoMessage()    {}
+
+type DomainTicket struct {
+	SenderPubkeyHash []byte `protobuf:"bytes,1,opt,name=sender_pubkey_hash,proto3" json:"sender_pubkey_hash,omitempty"`
+	ValidAfter       uint32 `protobuf:"varint,10,opt,name=valid_after" json:"valid_after,omitempty"`
+	ValidBefore      uint32 `protobuf:"varint,11,opt,name=valid_before" json:"valid_before,omitempty"`
+	SenderDomain     string `protobuf:"bytes,20,opt,name=sender_domain" json:"sender_domain,omitempty"`
+	RecipientDomain  string `protobuf:"bytes,21,opt,name=recipient_domain" json:"recipient_domain,omitempty"`
+}
+
+func (m *DomainTicket) Reset()         { *m = DomainTicket{} }
+func (m *DomainTicket) String() string { return proto.CompactTextString(m) }
+func (*DomainTicket) ProtoMessage()    {}
 
 type SubscriptionRequest struct {
 	Id string `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
@@ -75,69 +144,718 @@ func (m *Message) Reset()         { *m = Message{} }
 func (m *Message) String() string { return proto.CompactTextString(m) }
 func (*Message) ProtoMessage()    {}
 
-type MediatorHandshakeRequest struct {
-	Recipient    string `protobuf:"bytes,1,opt,name=recipient" json:"recipient,omitempty"`
-	DomainTicket []byte `protobuf:"bytes,10,opt,name=domain_ticket,proto3" json:"domain_ticket,omitempty"`
-	SenderPubkey []byte `protobuf:"bytes,11,opt,name=sender_pubkey,proto3" json:"sender_pubkey,omitempty"`
-	Ttl          uint32 `protobuf:"varint,20,opt,name=ttl" json:"ttl,omitempty"`
+// IdentityRegistrationRequest message encrypted by the identity registrar instance's public key
+type IdentityRegistrationRequestEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
-func (m *MediatorHandshakeRequest) Reset()         { *m = MediatorHandshakeRequest{} }
-func (m *MediatorHandshakeRequest) String() string { return proto.CompactTextString(m) }
-func (*MediatorHandshakeRequest) ProtoMessage()    {}
+func (m *IdentityRegistrationRequestEncrypted) Reset()         { *m = IdentityRegistrationRequestEncrypted{} }
+func (m *IdentityRegistrationRequestEncrypted) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationRequestEncrypted) ProtoMessage()    {}
 
-type MediatorHandshakeResponse struct {
-	EncryptedResponse []byte `protobuf:"bytes,1,opt,name=encrypted_response,proto3" json:"encrypted_response,omitempty"`
+type IdentityRegistrationRequest struct {
+	SenderDomain                  string `protobuf:"bytes,1,opt,name=sender_domain" json:"sender_domain,omitempty"`
+	Nonce                         []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	PublicKey                     []byte `protobuf:"bytes,3,opt,name=public_key,proto3" json:"public_key,omitempty"`
+	SomeSortOfAuthenticationProof []byte `protobuf:"bytes,10,opt,name=some_sort_of_authentication_proof,proto3" json:"some_sort_of_authentication_proof,omitempty"`
 }
 
-func (m *MediatorHandshakeResponse) Reset()         { *m = MediatorHandshakeResponse{} }
-func (m *MediatorHandshakeResponse) String() string { return proto.CompactTextString(m) }
-func (*MediatorHandshakeResponse) ProtoMessage()    {}
+func (m *IdentityRegistrationRequest) Reset()         { *m = IdentityRegistrationRequest{} }
+func (m *IdentityRegistrationRequest) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationRequest) ProtoMessage()    {}
 
-type MediatorHandshakeEncryptedResponse struct {
-	Signature     []byte `protobuf:"bytes,1,opt,name=signature,proto3" json:"signature,omitempty"`
-	Key           []byte `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-	Timestamp     uint32 `protobuf:"varint,10,opt,name=timestamp" json:"timestamp,omitempty"`
-	NegotiatedTtl uint32 `protobuf:"varint,20,opt,name=negotiated_ttl" json:"negotiated_ttl,omitempty"`
+// IdentityRegistrationChallenge message encrypted by the requester's public key provided via IdentityRegistrationRequest message
+type IdentityRegistrationChallengeEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
-func (m *MediatorHandshakeEncryptedResponse) Reset()         { *m = MediatorHandshakeEncryptedResponse{} }
-func (m *MediatorHandshakeEncryptedResponse) String() string { return proto.CompactTextString(m) }
-func (*MediatorHandshakeEncryptedResponse) ProtoMessage()    {}
+func (m *IdentityRegistrationChallengeEncrypted) Reset() {
+	*m = IdentityRegistrationChallengeEncrypted{}
+}
+func (m *IdentityRegistrationChallengeEncrypted) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationChallengeEncrypted) ProtoMessage()    {}
 
-type MediatorStoredRecord struct {
-	UserPubkey []byte `protobuf:"bytes,1,opt,name=user_pubkey,proto3" json:"user_pubkey,omitempty"`
+type IdentityRegistrationChallenge struct {
+	EncryptedRegistrationTicket                             *IdentityRegistrationChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
+	IdentityRegistrarSignatureOfEncryptedRegistrationTicket []byte                                        `protobuf:"bytes,2,opt,name=identity_registrar_signature_of_encrypted_registration_ticket,proto3" json:"identity_registrar_signature_of_encrypted_registration_ticket,omitempty"`
 }
 
-func (m *MediatorStoredRecord) Reset()         { *m = MediatorStoredRecord{} }
-func (m *MediatorStoredRecord) String() string { return proto.CompactTextString(m) }
-func (*MediatorStoredRecord) ProtoMessage()    {}
+func (m *IdentityRegistrationChallenge) Reset()         { *m = IdentityRegistrationChallenge{} }
+func (m *IdentityRegistrationChallenge) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationChallenge) ProtoMessage()    {}
 
-type ForwarderStorageRequest struct {
-	EncryptedMessage              []byte `protobuf:"bytes,1,opt,name=encrypted_message,proto3" json:"encrypted_message,omitempty"`
-	SomeSortOfRecipientIdentifier string `protobuf:"bytes,10,opt,name=some_sort_of_recipient_identifier" json:"some_sort_of_recipient_identifier,omitempty"`
-	NegotiatedTtl                 uint32 `protobuf:"varint,20,opt,name=negotiated_ttl" json:"negotiated_ttl,omitempty"`
+func (m *IdentityRegistrationChallenge) GetEncryptedRegistrationTicket() *IdentityRegistrationChallengeTicketEncrypted {
+	if m != nil {
+		return m.EncryptedRegistrationTicket
+	}
+	return nil
 }
 
-func (m *ForwarderStorageRequest) Reset()         { *m = ForwarderStorageRequest{} }
-func (m *ForwarderStorageRequest) String() string { return proto.CompactTextString(m) }
-func (*ForwarderStorageRequest) ProtoMessage()    {}
-
-type ForwarderRetrievalRequest struct {
-	SomeSortOfRecipientIdentifier string `protobuf:"bytes,10,opt,name=some_sort_of_recipient_identifier" json:"some_sort_of_recipient_identifier,omitempty"`
+// IdentityRegistrationChallengeTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
+// ... to be created _and_ consumed by the identity registrar instance itself
+type IdentityRegistrationChallengeTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
-func (m *ForwarderRetrievalRequest) Reset()         { *m = ForwarderRetrievalRequest{} }
-func (m *ForwarderRetrievalRequest) String() string { return proto.CompactTextString(m) }
-func (*ForwarderRetrievalRequest) ProtoMessage()    {}
+func (m *IdentityRegistrationChallengeTicketEncrypted) Reset() {
+	*m = IdentityRegistrationChallengeTicketEncrypted{}
+}
+func (m *IdentityRegistrationChallengeTicketEncrypted) String() string {
+	return proto.CompactTextString(m)
+}
+func (*IdentityRegistrationChallengeTicketEncrypted) ProtoMessage() {}
 
-type ForwarderRetrievalResponse struct {
-	EncryptedMessage []byte `protobuf:"bytes,1,opt,name=encrypted_message,proto3" json:"encrypted_message,omitempty"`
+type IdentityRegistrationChallengeTicket struct {
+	Timestamp uint32                       `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	Nonce     []byte                       `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Request   *IdentityRegistrationRequest `protobuf:"bytes,3,opt,name=request" json:"request,omitempty"`
 }
 
-func (m *ForwarderRetrievalResponse) Reset()         { *m = ForwarderRetrievalResponse{} }
-func (m *ForwarderRetrievalResponse) String() string { return proto.CompactTextString(m) }
-func (*ForwarderRetrievalResponse) ProtoMessage()    {}
+func (m *IdentityRegistrationChallengeTicket) Reset()         { *m = IdentityRegistrationChallengeTicket{} }
+func (m *IdentityRegistrationChallengeTicket) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationChallengeTicket) ProtoMessage()    {}
+
+func (m *IdentityRegistrationChallengeTicket) GetRequest() *IdentityRegistrationRequest {
+	if m != nil {
+		return m.Request
+	}
+	return nil
+}
+
+// IdentityRegistrationProof message encrypted by the identity registrar instance's public key
+type IdentityRegistrationProofEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *IdentityRegistrationProofEncrypted) Reset()         { *m = IdentityRegistrationProofEncrypted{} }
+func (m *IdentityRegistrationProofEncrypted) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationProofEncrypted) ProtoMessage()    {}
+
+type IdentityRegistrationProof struct {
+	EncryptedRegistrationTicket                             *IdentityRegistrationChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
+	IdentityRegistrarSignatureOfEncryptedRegistrationTicket []byte                                        `protobuf:"bytes,2,opt,name=identity_registrar_signature_of_encrypted_registration_ticket,proto3" json:"identity_registrar_signature_of_encrypted_registration_ticket,omitempty"`
+	ValidAfter                                              uint32                                        `protobuf:"varint,10,opt,name=valid_after" json:"valid_after,omitempty"`
+	ValidBefore                                             uint32                                        `protobuf:"varint,11,opt,name=valid_before" json:"valid_before,omitempty"`
+	RecipientDomain                                         string                                        `protobuf:"bytes,20,opt,name=recipient_domain" json:"recipient_domain,omitempty"`
+}
+
+func (m *IdentityRegistrationProof) Reset()         { *m = IdentityRegistrationProof{} }
+func (m *IdentityRegistrationProof) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationProof) ProtoMessage()    {}
+
+func (m *IdentityRegistrationProof) GetEncryptedRegistrationTicket() *IdentityRegistrationChallengeTicketEncrypted {
+	if m != nil {
+		return m.EncryptedRegistrationTicket
+	}
+	return nil
+}
+
+// IdentityRegistrationTicketSigned message encrypted by the requester's public key provided via IdentityRegistrationRequest message
+type IdentityRegistrationTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *IdentityRegistrationTicketEncrypted) Reset()         { *m = IdentityRegistrationTicketEncrypted{} }
+func (m *IdentityRegistrationTicketEncrypted) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationTicketEncrypted) ProtoMessage()    {}
+
+// IdentityRegistrationTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted
+type IdentityRegistrationTicketSigned struct {
+	Signature []byte                      `protobuf:"bytes,1,opt,name=signature,proto3" json:"signature,omitempty"`
+	Ticket    *IdentityRegistrationTicket `protobuf:"bytes,2,opt,name=ticket" json:"ticket,omitempty"`
+}
+
+func (m *IdentityRegistrationTicketSigned) Reset()         { *m = IdentityRegistrationTicketSigned{} }
+func (m *IdentityRegistrationTicketSigned) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationTicketSigned) ProtoMessage()    {}
+
+func (m *IdentityRegistrationTicketSigned) GetTicket() *IdentityRegistrationTicket {
+	if m != nil {
+		return m.Ticket
+	}
+	return nil
+}
+
+type IdentityRegistrationTicket struct {
+	IdentityRegistrarInstanceId []byte `protobuf:"bytes,1,opt,name=identity_registrar_instance_id,proto3" json:"identity_registrar_instance_id,omitempty"`
+	ValidAfter                  uint32 `protobuf:"varint,2,opt,name=valid_after" json:"valid_after,omitempty"`
+	ValidBefore                 uint32 `protobuf:"varint,3,opt,name=valid_before" json:"valid_before,omitempty"`
+	SenderId                    []byte `protobuf:"bytes,10,opt,name=sender_id,proto3" json:"sender_id,omitempty"`
+	SenderDomain                string `protobuf:"bytes,11,opt,name=sender_domain" json:"sender_domain,omitempty"`
+	RecipientDomain             string `protobuf:"bytes,12,opt,name=recipient_domain" json:"recipient_domain,omitempty"`
+}
+
+func (m *IdentityRegistrationTicket) Reset()         { *m = IdentityRegistrationTicket{} }
+func (m *IdentityRegistrationTicket) String() string { return proto.CompactTextString(m) }
+func (*IdentityRegistrationTicket) ProtoMessage()    {}
+
+// MediationRegistrationRequest message encrypted by the mediation registrar instance's public key
+type MediationRegistrationRequestEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRegistrationRequestEncrypted) Reset()         { *m = MediationRegistrationRequestEncrypted{} }
+func (m *MediationRegistrationRequestEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationRequestEncrypted) ProtoMessage()    {}
+
+type MediationRegistrationRequest struct {
+	Domain                        string `protobuf:"bytes,1,opt,name=domain" json:"domain,omitempty"`
+	Nonce                         []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	PublicKey                     []byte `protobuf:"bytes,3,opt,name=public_key,proto3" json:"public_key,omitempty"`
+	SomeSortOfAuthenticationProof []byte `protobuf:"bytes,10,opt,name=some_sort_of_authentication_proof,proto3" json:"some_sort_of_authentication_proof,omitempty"`
+}
+
+func (m *MediationRegistrationRequest) Reset()         { *m = MediationRegistrationRequest{} }
+func (m *MediationRegistrationRequest) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationRequest) ProtoMessage()    {}
+
+// MediationRegistrationChallenge message encrypted by the requester's public key provided via MediationRegistrationRequest message
+type MediationRegistrationChallengeEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRegistrationChallengeEncrypted) Reset() {
+	*m = MediationRegistrationChallengeEncrypted{}
+}
+func (m *MediationRegistrationChallengeEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationChallengeEncrypted) ProtoMessage()    {}
+
+type MediationRegistrationChallenge struct {
+	EncryptedRegistrationTicket                              *MediationRegistrationChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
+	MediationRegistrarSignatureOfEncryptedRegistrationTicket []byte                                         `protobuf:"bytes,2,opt,name=mediation_registrar_signature_of_encrypted_registration_ticket,proto3" json:"mediation_registrar_signature_of_encrypted_registration_ticket,omitempty"`
+	CnSalt                                                   []byte                                         `protobuf:"bytes,10,opt,name=cn_salt,proto3" json:"cn_salt,omitempty"`
+}
+
+func (m *MediationRegistrationChallenge) Reset()         { *m = MediationRegistrationChallenge{} }
+func (m *MediationRegistrationChallenge) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationChallenge) ProtoMessage()    {}
+
+func (m *MediationRegistrationChallenge) GetEncryptedRegistrationTicket() *MediationRegistrationChallengeTicketEncrypted {
+	if m != nil {
+		return m.EncryptedRegistrationTicket
+	}
+	return nil
+}
+
+// MediationRegistrationChallengeTicket message encrypted by the mediation registrar instance's super-secret MediationRegistrationTicket private key used only for this purpose
+// ... to be created _and_ consumed by the mediation registrar instance itself
+type MediationRegistrationChallengeTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRegistrationChallengeTicketEncrypted) Reset() {
+	*m = MediationRegistrationChallengeTicketEncrypted{}
+}
+func (m *MediationRegistrationChallengeTicketEncrypted) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MediationRegistrationChallengeTicketEncrypted) ProtoMessage() {}
+
+type MediationRegistrationChallengeTicket struct {
+	Timestamp uint32            `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	Nonce     []byte            `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Request   *MediationRequest `protobuf:"bytes,3,opt,name=request" json:"request,omitempty"`
+}
+
+func (m *MediationRegistrationChallengeTicket) Reset()         { *m = MediationRegistrationChallengeTicket{} }
+func (m *MediationRegistrationChallengeTicket) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationChallengeTicket) ProtoMessage()    {}
+
+func (m *MediationRegistrationChallengeTicket) GetRequest() *MediationRequest {
+	if m != nil {
+		return m.Request
+	}
+	return nil
+}
+
+// MediationRegistrationProof message encrypted by the mediation registrar instance's public key
+type MediationRegistrationProofEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRegistrationProofEncrypted) Reset()         { *m = MediationRegistrationProofEncrypted{} }
+func (m *MediationRegistrationProofEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationProofEncrypted) ProtoMessage()    {}
+
+type MediationRegistrationProof struct {
+	EncryptedRegistrationTicket                              *MediationRegistrationChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
+	MediationRegistrarSignatureOfEncryptedRegistrationTicket []byte                                         `protobuf:"bytes,2,opt,name=mediation_registrar_signature_of_encrypted_registration_ticket,proto3" json:"mediation_registrar_signature_of_encrypted_registration_ticket,omitempty"`
+	ValidAfter                                               uint32                                         `protobuf:"varint,10,opt,name=valid_after" json:"valid_after,omitempty"`
+	ValidBefore                                              uint32                                         `protobuf:"varint,11,opt,name=valid_before" json:"valid_before,omitempty"`
+	CnTicket                                                 *CNSignTicketEncrypted                         `protobuf:"bytes,20,opt,name=cn_ticket" json:"cn_ticket,omitempty"`
+	BumbleNotificationId                                     []byte                                         `protobuf:"bytes,30,opt,name=bumble_notification_id,proto3" json:"bumble_notification_id,omitempty"`
+}
+
+func (m *MediationRegistrationProof) Reset()         { *m = MediationRegistrationProof{} }
+func (m *MediationRegistrationProof) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationProof) ProtoMessage()    {}
+
+func (m *MediationRegistrationProof) GetEncryptedRegistrationTicket() *MediationRegistrationChallengeTicketEncrypted {
+	if m != nil {
+		return m.EncryptedRegistrationTicket
+	}
+	return nil
+}
+
+func (m *MediationRegistrationProof) GetCnTicket() *CNSignTicketEncrypted {
+	if m != nil {
+		return m.CnTicket
+	}
+	return nil
+}
+
+// MediationRegistrationTicketSigned message encrypted by the requester's public key provided via MediationRegister message
+type MediationRegistrationTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRegistrationTicketEncrypted) Reset()         { *m = MediationRegistrationTicketEncrypted{} }
+func (m *MediationRegistrationTicketEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationTicketEncrypted) ProtoMessage()    {}
+
+// MediationRegistrationTicket signed by the mediation registrar instance's private key; ticket is signed, not encrypted
+type MediationRegistrationTicketSigned struct {
+	Ticket    *MediationTicket `protobuf:"bytes,1,opt,name=ticket" json:"ticket,omitempty"`
+	Signature []byte           `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRegistrationTicketSigned) Reset()         { *m = MediationRegistrationTicketSigned{} }
+func (m *MediationRegistrationTicketSigned) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationTicketSigned) ProtoMessage()    {}
+
+func (m *MediationRegistrationTicketSigned) GetTicket() *MediationTicket {
+	if m != nil {
+		return m.Ticket
+	}
+	return nil
+}
+
+type MediationRegistrationTicket struct {
+	MediationRegistrarInstanceId []byte `protobuf:"bytes,1,opt,name=mediation_registrar_instance_id,proto3" json:"mediation_registrar_instance_id,omitempty"`
+	ValidAfter                   uint32 `protobuf:"varint,2,opt,name=valid_after" json:"valid_after,omitempty"`
+	ValidBefore                  uint32 `protobuf:"varint,3,opt,name=valid_before" json:"valid_before,omitempty"`
+	Id                           []byte `protobuf:"bytes,10,opt,name=id,proto3" json:"id,omitempty"`
+	Domain                       string `protobuf:"bytes,11,opt,name=domain" json:"domain,omitempty"`
+}
+
+func (m *MediationRegistrationTicket) Reset()         { *m = MediationRegistrationTicket{} }
+func (m *MediationRegistrationTicket) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationTicket) ProtoMessage()    {}
+
+// gets stored in the MediationRegistration pool-shared database
+type MediationRegistrationRecord struct {
+	HashedValue []byte                             `protobuf:"bytes,1,opt,name=hashed_value,proto3" json:"hashed_value,omitempty"`
+	Ticket      *MediationRegistrationTicketSigned `protobuf:"bytes,2,opt,name=ticket" json:"ticket,omitempty"`
+	Pubkey      []byte                             `protobuf:"bytes,10,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
+}
+
+func (m *MediationRegistrationRecord) Reset()         { *m = MediationRegistrationRecord{} }
+func (m *MediationRegistrationRecord) String() string { return proto.CompactTextString(m) }
+func (*MediationRegistrationRecord) ProtoMessage()    {}
+
+func (m *MediationRegistrationRecord) GetTicket() *MediationRegistrationTicketSigned {
+	if m != nil {
+		return m.Ticket
+	}
+	return nil
+}
+
+type CNSignRequestEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *CNSignRequestEncrypted) Reset()         { *m = CNSignRequestEncrypted{} }
+func (m *CNSignRequestEncrypted) String() string { return proto.CompactTextString(m) }
+func (*CNSignRequestEncrypted) ProtoMessage()    {}
+
+type CNSignRequest struct {
+	DomainHash                    []byte `protobuf:"bytes,1,opt,name=domain_hash,proto3" json:"domain_hash,omitempty"`
+	CnHash                        []byte `protobuf:"bytes,2,opt,name=cn_hash,proto3" json:"cn_hash,omitempty"`
+	MrSalt                        []byte `protobuf:"bytes,3,opt,name=mr_salt,proto3" json:"mr_salt,omitempty"`
+	MrSignature                   []byte `protobuf:"bytes,4,opt,name=mr_signature,proto3" json:"mr_signature,omitempty"`
+	MrPubkey                      []byte `protobuf:"bytes,5,opt,name=mr_pubkey,proto3" json:"mr_pubkey,omitempty"`
+	SomeSortOfAuthenticationProof []byte `protobuf:"bytes,10,opt,name=some_sort_of_authentication_proof,proto3" json:"some_sort_of_authentication_proof,omitempty"`
+}
+
+func (m *CNSignRequest) Reset()         { *m = CNSignRequest{} }
+func (m *CNSignRequest) String() string { return proto.CompactTextString(m) }
+func (*CNSignRequest) ProtoMessage()    {}
+
+type CNSignTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *CNSignTicketEncrypted) Reset()         { *m = CNSignTicketEncrypted{} }
+func (m *CNSignTicketEncrypted) String() string { return proto.CompactTextString(m) }
+func (*CNSignTicketEncrypted) ProtoMessage()    {}
+
+type CNSignTicket struct {
+	Timestamp        uint32 `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	CnDomainSaltHash []byte `protobuf:"bytes,2,opt,name=cn_domain_salt_hash,proto3" json:"cn_domain_salt_hash,omitempty"`
+	MrSalt           []byte `protobuf:"bytes,3,opt,name=mr_salt,proto3" json:"mr_salt,omitempty"`
+	MrSignature      []byte `protobuf:"bytes,4,opt,name=mr_signature,proto3" json:"mr_signature,omitempty"`
+	ValidAfter       uint32 `protobuf:"varint,10,opt,name=valid_after" json:"valid_after,omitempty"`
+	ValidBefore      uint32 `protobuf:"varint,11,opt,name=valid_before" json:"valid_before,omitempty"`
+}
+
+func (m *CNSignTicket) Reset()         { *m = CNSignTicket{} }
+func (m *CNSignTicket) String() string { return proto.CompactTextString(m) }
+func (*CNSignTicket) ProtoMessage()    {}
+
+type MediationRequestEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRequestEncrypted) Reset()         { *m = MediationRequestEncrypted{} }
+func (m *MediationRequestEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRequestEncrypted) ProtoMessage()    {}
+
+type MediationRequest struct {
+	RcnHash            string        `protobuf:"bytes,1,opt,name=rcn_hash" json:"rcn_hash,omitempty"`
+	SenderDomainTicket *DomainTicket `protobuf:"bytes,10,opt,name=sender_domain_ticket" json:"sender_domain_ticket,omitempty"`
+	SenderPubkey       []byte        `protobuf:"bytes,11,opt,name=sender_pubkey,proto3" json:"sender_pubkey,omitempty"`
+	DhPublic           []byte        `protobuf:"bytes,20,opt,name=dh_public,proto3" json:"dh_public,omitempty"`
+	RequestedTtl       uint32        `protobuf:"varint,30,opt,name=requested_ttl" json:"requested_ttl,omitempty"`
+}
+
+func (m *MediationRequest) Reset()         { *m = MediationRequest{} }
+func (m *MediationRequest) String() string { return proto.CompactTextString(m) }
+func (*MediationRequest) ProtoMessage()    {}
+
+func (m *MediationRequest) GetSenderDomainTicket() *DomainTicket {
+	if m != nil {
+		return m.SenderDomainTicket
+	}
+	return nil
+}
+
+type MediationTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationTicketEncrypted) Reset()         { *m = MediationTicketEncrypted{} }
+func (m *MediationTicketEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationTicketEncrypted) ProtoMessage()    {}
+
+// visible to the Sender
+type MediationTicket struct {
+	MediationInstanceId []byte                       `protobuf:"bytes,1,opt,name=mediation_instance_id,proto3" json:"mediation_instance_id,omitempty"`
+	Timestamp           uint32                       `protobuf:"varint,2,opt,name=timestamp" json:"timestamp,omitempty"`
+	SenderId            []byte                       `protobuf:"bytes,3,opt,name=sender_id,proto3" json:"sender_id,omitempty"`
+	MaxMessageBytes     uint32                       `protobuf:"varint,4,opt,name=max_message_bytes" json:"max_message_bytes,omitempty"`
+	DhPublic            []byte                       `protobuf:"bytes,5,opt,name=dh_public,proto3" json:"dh_public,omitempty"`
+	Ticket              *MediationKeyTicketEncrypted `protobuf:"bytes,10,opt,name=ticket" json:"ticket,omitempty"`
+	Signature           []byte                       `protobuf:"bytes,11,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationTicket) Reset()         { *m = MediationTicket{} }
+func (m *MediationTicket) String() string { return proto.CompactTextString(m) }
+func (*MediationTicket) ProtoMessage()    {}
+
+func (m *MediationTicket) GetTicket() *MediationKeyTicketEncrypted {
+	if m != nil {
+		return m.Ticket
+	}
+	return nil
+}
+
+// ??? this probably isn't a ticket
+type MediationKeyTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationKeyTicketEncrypted) Reset()         { *m = MediationKeyTicketEncrypted{} }
+func (m *MediationKeyTicketEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationKeyTicketEncrypted) ProtoMessage()    {}
+
+// visible only to the Recipient
+type MediationKeyTicket struct {
+	MediationInstanceId []byte `protobuf:"bytes,1,opt,name=mediation_instance_id,proto3" json:"mediation_instance_id,omitempty"`
+	Timestamp           uint32 `protobuf:"varint,2,opt,name=timestamp" json:"timestamp,omitempty"`
+	SenderId            []byte `protobuf:"bytes,3,opt,name=sender_id,proto3" json:"sender_id,omitempty"`
+	MaxMessageBytes     uint32 `protobuf:"varint,4,opt,name=max_message_bytes" json:"max_message_bytes,omitempty"`
+	DhPrivate           []byte `protobuf:"bytes,5,opt,name=dh_private,proto3" json:"dh_private,omitempty"`
+}
+
+func (m *MediationKeyTicket) Reset()         { *m = MediationKeyTicket{} }
+func (m *MediationKeyTicket) String() string { return proto.CompactTextString(m) }
+func (*MediationKeyTicket) ProtoMessage()    {}
+
+type MediationForwarderStorageRequestEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationForwarderStorageRequestEncrypted) Reset() {
+	*m = MediationForwarderStorageRequestEncrypted{}
+}
+func (m *MediationForwarderStorageRequestEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationForwarderStorageRequestEncrypted) ProtoMessage()    {}
+
+type MediationForwarderStorageRequest struct {
+	Timestamp          uint32                     `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	CnDomainSaltHash   []byte                     `protobuf:"bytes,2,opt,name=cn_domain_salt_hash,proto3" json:"cn_domain_salt_hash,omitempty"`
+	SenderDomainTicket []byte                     `protobuf:"bytes,3,opt,name=sender_domain_ticket,proto3" json:"sender_domain_ticket,omitempty"`
+	Message            *MediationForwarderMessage `protobuf:"bytes,10,opt,name=message" json:"message,omitempty"`
+}
+
+func (m *MediationForwarderStorageRequest) Reset()         { *m = MediationForwarderStorageRequest{} }
+func (m *MediationForwarderStorageRequest) String() string { return proto.CompactTextString(m) }
+func (*MediationForwarderStorageRequest) ProtoMessage()    {}
+
+func (m *MediationForwarderStorageRequest) GetMessage() *MediationForwarderMessage {
+	if m != nil {
+		return m.Message
+	}
+	return nil
+}
+
+type MediationForwarderMessage struct {
+	Ticket           []*MediationTicket `protobuf:"bytes,1,rep,name=ticket" json:"ticket,omitempty"`
+	DhPublic         [][]byte           `protobuf:"bytes,2,rep,name=dh_public,proto3" json:"dh_public,omitempty"`
+	EncryptedMessage []byte             `protobuf:"bytes,3,opt,name=encrypted_message,proto3" json:"encrypted_message,omitempty"`
+}
+
+func (m *MediationForwarderMessage) Reset()         { *m = MediationForwarderMessage{} }
+func (m *MediationForwarderMessage) String() string { return proto.CompactTextString(m) }
+func (*MediationForwarderMessage) ProtoMessage()    {}
+
+func (m *MediationForwarderMessage) GetTicket() []*MediationTicket {
+	if m != nil {
+		return m.Ticket
+	}
+	return nil
+}
+
+type MediationRetrieverRequestEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverRequestEncrypted) Reset()         { *m = MediationRetrieverRequestEncrypted{} }
+func (m *MediationRetrieverRequestEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverRequestEncrypted) ProtoMessage()    {}
+
+type MediationRetrieverRequest struct {
+	Ticket          *MediationRetrieverTicketSigned `protobuf:"bytes,1,opt,name=ticket" json:"ticket,omitempty"`
+	Nonce           string                          `protobuf:"bytes,2,opt,name=nonce" json:"nonce,omitempty"`
+	SymmetricKey    []byte                          `protobuf:"bytes,3,opt,name=symmetric_key,proto3" json:"symmetric_key,omitempty"`
+	MaxMessageCount uint32                          `protobuf:"varint,10,opt,name=max_message_count" json:"max_message_count,omitempty"`
+}
+
+func (m *MediationRetrieverRequest) Reset()         { *m = MediationRetrieverRequest{} }
+func (m *MediationRetrieverRequest) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverRequest) ProtoMessage()    {}
+
+func (m *MediationRetrieverRequest) GetTicket() *MediationRetrieverTicketSigned {
+	if m != nil {
+		return m.Ticket
+	}
+	return nil
+}
+
+// encrypted MediationRetrieverResponse by MediationRetrieverRequest's field #3 symmetric_key
+type MediationRetrieverResponseEncrypted struct {
+	Payload []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+}
+
+func (m *MediationRetrieverResponseEncrypted) Reset()         { *m = MediationRetrieverResponseEncrypted{} }
+func (m *MediationRetrieverResponseEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverResponseEncrypted) ProtoMessage()    {}
+
+type MediationRetrieverResponse struct {
+	Timestamp uint32                       `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	Nonce     string                       `protobuf:"bytes,2,opt,name=nonce" json:"nonce,omitempty"`
+	Payload   []*MediationRetrieverMessage `protobuf:"bytes,3,rep,name=payload" json:"payload,omitempty"`
+}
+
+func (m *MediationRetrieverResponse) Reset()         { *m = MediationRetrieverResponse{} }
+func (m *MediationRetrieverResponse) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverResponse) ProtoMessage()    {}
+
+func (m *MediationRetrieverResponse) GetPayload() []*MediationRetrieverMessage {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+type MediationRetrieverMessage struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverMessage) Reset()         { *m = MediationRetrieverMessage{} }
+func (m *MediationRetrieverMessage) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverMessage) ProtoMessage()    {}
+
+type MediationRetrieverTicketRequestEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverTicketRequestEncrypted) Reset() {
+	*m = MediationRetrieverTicketRequestEncrypted{}
+}
+func (m *MediationRetrieverTicketRequestEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketRequestEncrypted) ProtoMessage()    {}
+
+type MediationRetrieverTicketRequest struct {
+	Domain    string `protobuf:"bytes,1,opt,name=domain" json:"domain,omitempty"`
+	Nonce     string `protobuf:"bytes,2,opt,name=nonce" json:"nonce,omitempty"`
+	PublicKey []byte `protobuf:"bytes,3,opt,name=public_key,proto3" json:"public_key,omitempty"`
+}
+
+func (m *MediationRetrieverTicketRequest) Reset()         { *m = MediationRetrieverTicketRequest{} }
+func (m *MediationRetrieverTicketRequest) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketRequest) ProtoMessage()    {}
+
+// MediationRetrieverChallenge message encrypted by the requester's public key provided via MediationRetrieverRequest message
+type MediationRetrieverTicketChallengeEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverTicketChallengeEncrypted) Reset() {
+	*m = MediationRetrieverTicketChallengeEncrypted{}
+}
+func (m *MediationRetrieverTicketChallengeEncrypted) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MediationRetrieverTicketChallengeEncrypted) ProtoMessage() {}
+
+type MediationRetrieverTicketChallenge struct {
+	EncryptedRegistrationTicket                             *IdentityRegistrationChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
+	IdentityRegistrarSignatureOfEncryptedRegistrationTicket []byte                                        `protobuf:"bytes,2,opt,name=identity_registrar_signature_of_encrypted_registration_ticket,proto3" json:"identity_registrar_signature_of_encrypted_registration_ticket,omitempty"`
+}
+
+func (m *MediationRetrieverTicketChallenge) Reset()         { *m = MediationRetrieverTicketChallenge{} }
+func (m *MediationRetrieverTicketChallenge) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketChallenge) ProtoMessage()    {}
+
+func (m *MediationRetrieverTicketChallenge) GetEncryptedRegistrationTicket() *IdentityRegistrationChallengeTicketEncrypted {
+	if m != nil {
+		return m.EncryptedRegistrationTicket
+	}
+	return nil
+}
+
+// MediationRetrieverChallengeTicket message encrypted by the identity registrar instance's super-secret MediationRetrieverChallengeTicket private key used only for this purpose
+// ... to be created _and_ consumed by the identity registrar instance itself
+type MediationRetrieverTicketChallengeTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverTicketChallengeTicketEncrypted) Reset() {
+	*m = MediationRetrieverTicketChallengeTicketEncrypted{}
+}
+func (m *MediationRetrieverTicketChallengeTicketEncrypted) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MediationRetrieverTicketChallengeTicketEncrypted) ProtoMessage() {}
+
+type MediationRetrieverTicketChallengeTicket struct {
+	Timestamp uint32                           `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	Nonce     []byte                           `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Request   *MediationRetrieverTicketRequest `protobuf:"bytes,3,opt,name=request" json:"request,omitempty"`
+}
+
+func (m *MediationRetrieverTicketChallengeTicket) Reset() {
+	*m = MediationRetrieverTicketChallengeTicket{}
+}
+func (m *MediationRetrieverTicketChallengeTicket) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketChallengeTicket) ProtoMessage()    {}
+
+func (m *MediationRetrieverTicketChallengeTicket) GetRequest() *MediationRetrieverTicketRequest {
+	if m != nil {
+		return m.Request
+	}
+	return nil
+}
+
+// MediationRetrieverProof message encrypted by the retriever instance's public key
+type MediationRetrieverTicketProofEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverTicketProofEncrypted) Reset() {
+	*m = MediationRetrieverTicketProofEncrypted{}
+}
+func (m *MediationRetrieverTicketProofEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketProofEncrypted) ProtoMessage()    {}
+
+type MediationRetrieverTicketProof struct {
+	EncryptedRegistrationTicket                              *MediationRetrieverTicketChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
+	MediationRetrieverSignatureOfEncryptedRegistrationTicket []byte                                            `protobuf:"bytes,2,opt,name=mediation_retriever_signature_of_encrypted_registration_ticket,proto3" json:"mediation_retriever_signature_of_encrypted_registration_ticket,omitempty"`
+	ValidBefore                                              uint32                                            `protobuf:"varint,11,opt,name=valid_before" json:"valid_before,omitempty"`
+}
+
+func (m *MediationRetrieverTicketProof) Reset()         { *m = MediationRetrieverTicketProof{} }
+func (m *MediationRetrieverTicketProof) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketProof) ProtoMessage()    {}
+
+func (m *MediationRetrieverTicketProof) GetEncryptedRegistrationTicket() *MediationRetrieverTicketChallengeTicketEncrypted {
+	if m != nil {
+		return m.EncryptedRegistrationTicket
+	}
+	return nil
+}
+
+// MediationRetrieverTicketSigned message encrypted by the requester's public key provided via IMediationRetrieverTicketRequest message
+type MediationRetrieverTicketEncrypted struct {
+	Payload   []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverTicketEncrypted) Reset()         { *m = MediationRetrieverTicketEncrypted{} }
+func (m *MediationRetrieverTicketEncrypted) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketEncrypted) ProtoMessage()    {}
+
+// MediationRetrieverTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted
+type MediationRetrieverTicketSigned struct {
+	Ticket    *MediationRetrieverTicket `protobuf:"bytes,1,opt,name=ticket" json:"ticket,omitempty"`
+	Signature []byte                    `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (m *MediationRetrieverTicketSigned) Reset()         { *m = MediationRetrieverTicketSigned{} }
+func (m *MediationRetrieverTicketSigned) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicketSigned) ProtoMessage()    {}
+
+func (m *MediationRetrieverTicketSigned) GetTicket() *MediationRetrieverTicket {
+	if m != nil {
+		return m.Ticket
+	}
+	return nil
+}
+
+type MediationRetrieverTicket struct {
+	MediationRetrieverInstanceId []byte `protobuf:"bytes,1,opt,name=mediation_retriever_instance_id,proto3" json:"mediation_retriever_instance_id,omitempty"`
+	ValidAfter                   uint32 `protobuf:"varint,2,opt,name=valid_after" json:"valid_after,omitempty"`
+	ValidBefore                  uint32 `protobuf:"varint,3,opt,name=valid_before" json:"valid_before,omitempty"`
+	PublicKey                    []byte `protobuf:"bytes,10,opt,name=public_key,proto3" json:"public_key,omitempty"`
+	Domain                       string `protobuf:"bytes,11,opt,name=domain" json:"domain,omitempty"`
+}
+
+func (m *MediationRetrieverTicket) Reset()         { *m = MediationRetrieverTicket{} }
+func (m *MediationRetrieverTicket) String() string { return proto.CompactTextString(m) }
+func (*MediationRetrieverTicket) ProtoMessage()    {}
 
 // Client API for Router service
 
@@ -257,142 +975,451 @@ var _Router_serviceDesc = grpc.ServiceDesc{
 	},
 }
 
-// Client API for Mediator service
+// Client API for IdentityRegistration service
 
-type MediatorClient interface {
-	Handshake(ctx context.Context, in *MediatorHandshakeRequest, opts ...grpc.CallOption) (*MediatorHandshakeResponse, error)
+type IdentityRegistrationClient interface {
+	Register(ctx context.Context, in *IdentityRegistrationRequestEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationChallengeEncrypted, error)
+	Prove(ctx context.Context, in *IdentityRegistrationProofEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationTicketEncrypted, error)
 }
 
-type mediatorClient struct {
+type identityRegistrationClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewMediatorClient(cc *grpc.ClientConn) MediatorClient {
-	return &mediatorClient{cc}
+func NewIdentityRegistrationClient(cc *grpc.ClientConn) IdentityRegistrationClient {
+	return &identityRegistrationClient{cc}
 }
 
-func (c *mediatorClient) Handshake(ctx context.Context, in *MediatorHandshakeRequest, opts ...grpc.CallOption) (*MediatorHandshakeResponse, error) {
-	out := new(MediatorHandshakeResponse)
-	err := grpc.Invoke(ctx, "/tanuki.Mediator/Handshake", in, out, c.cc, opts...)
+func (c *identityRegistrationClient) Register(ctx context.Context, in *IdentityRegistrationRequestEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationChallengeEncrypted, error) {
+	out := new(IdentityRegistrationChallengeEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.IdentityRegistration/Register", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Mediator service
-
-type MediatorServer interface {
-	Handshake(context.Context, *MediatorHandshakeRequest) (*MediatorHandshakeResponse, error)
+func (c *identityRegistrationClient) Prove(ctx context.Context, in *IdentityRegistrationProofEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationTicketEncrypted, error) {
+	out := new(IdentityRegistrationTicketEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.IdentityRegistration/Prove", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func RegisterMediatorServer(s *grpc.Server, srv MediatorServer) {
-	s.RegisterService(&_Mediator_serviceDesc, srv)
+// Server API for IdentityRegistration service
+
+type IdentityRegistrationServer interface {
+	Register(context.Context, *IdentityRegistrationRequestEncrypted) (*IdentityRegistrationChallengeEncrypted, error)
+	Prove(context.Context, *IdentityRegistrationProofEncrypted) (*IdentityRegistrationTicketEncrypted, error)
 }
 
-func _Mediator_Handshake_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(MediatorHandshakeRequest)
+func RegisterIdentityRegistrationServer(s *grpc.Server, srv IdentityRegistrationServer) {
+	s.RegisterService(&_IdentityRegistration_serviceDesc, srv)
+}
+
+func _IdentityRegistration_Register_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(IdentityRegistrationRequestEncrypted)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(MediatorServer).Handshake(ctx, in)
+	out, err := srv.(IdentityRegistrationServer).Register(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-var _Mediator_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "tanuki.Mediator",
-	HandlerType: (*MediatorServer)(nil),
+func _IdentityRegistration_Prove_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(IdentityRegistrationProofEncrypted)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(IdentityRegistrationServer).Prove(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _IdentityRegistration_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "tanuki.IdentityRegistration",
+	HandlerType: (*IdentityRegistrationServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Handshake",
-			Handler:    _Mediator_Handshake_Handler,
+			MethodName: "Register",
+			Handler:    _IdentityRegistration_Register_Handler,
+		},
+		{
+			MethodName: "Prove",
+			Handler:    _IdentityRegistration_Prove_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
 }
 
-// Client API for Forwarder service
+// Client API for MediationRegistration service
 
-type ForwarderClient interface {
-	Store(ctx context.Context, in *ForwarderStorageRequest, opts ...grpc.CallOption) (*StatusResponse, error)
-	Retrieve(ctx context.Context, in *ForwarderRetrievalRequest, opts ...grpc.CallOption) (*ForwarderRetrievalResponse, error)
+type MediationRegistrationClient interface {
+	Register(ctx context.Context, in *MediationRegistrationRequestEncrypted, opts ...grpc.CallOption) (*MediationRegistrationChallengeEncrypted, error)
+	Prove(ctx context.Context, in *MediationRegistrationProofEncrypted, opts ...grpc.CallOption) (*MediationRegistrationTicketEncrypted, error)
 }
 
-type forwarderClient struct {
+type mediationRegistrationClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewForwarderClient(cc *grpc.ClientConn) ForwarderClient {
-	return &forwarderClient{cc}
+func NewMediationRegistrationClient(cc *grpc.ClientConn) MediationRegistrationClient {
+	return &mediationRegistrationClient{cc}
 }
 
-func (c *forwarderClient) Store(ctx context.Context, in *ForwarderStorageRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
-	out := new(StatusResponse)
-	err := grpc.Invoke(ctx, "/tanuki.Forwarder/Store", in, out, c.cc, opts...)
+func (c *mediationRegistrationClient) Register(ctx context.Context, in *MediationRegistrationRequestEncrypted, opts ...grpc.CallOption) (*MediationRegistrationChallengeEncrypted, error) {
+	out := new(MediationRegistrationChallengeEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.MediationRegistration/Register", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *forwarderClient) Retrieve(ctx context.Context, in *ForwarderRetrievalRequest, opts ...grpc.CallOption) (*ForwarderRetrievalResponse, error) {
-	out := new(ForwarderRetrievalResponse)
-	err := grpc.Invoke(ctx, "/tanuki.Forwarder/Retrieve", in, out, c.cc, opts...)
+func (c *mediationRegistrationClient) Prove(ctx context.Context, in *MediationRegistrationProofEncrypted, opts ...grpc.CallOption) (*MediationRegistrationTicketEncrypted, error) {
+	out := new(MediationRegistrationTicketEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.MediationRegistration/Prove", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for Forwarder service
+// Server API for MediationRegistration service
 
-type ForwarderServer interface {
-	Store(context.Context, *ForwarderStorageRequest) (*StatusResponse, error)
-	Retrieve(context.Context, *ForwarderRetrievalRequest) (*ForwarderRetrievalResponse, error)
+type MediationRegistrationServer interface {
+	Register(context.Context, *MediationRegistrationRequestEncrypted) (*MediationRegistrationChallengeEncrypted, error)
+	Prove(context.Context, *MediationRegistrationProofEncrypted) (*MediationRegistrationTicketEncrypted, error)
 }
 
-func RegisterForwarderServer(s *grpc.Server, srv ForwarderServer) {
-	s.RegisterService(&_Forwarder_serviceDesc, srv)
+func RegisterMediationRegistrationServer(s *grpc.Server, srv MediationRegistrationServer) {
+	s.RegisterService(&_MediationRegistration_serviceDesc, srv)
 }
 
-func _Forwarder_Store_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(ForwarderStorageRequest)
+func _MediationRegistration_Register_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MediationRegistrationRequestEncrypted)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(ForwarderServer).Store(ctx, in)
+	out, err := srv.(MediationRegistrationServer).Register(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func _Forwarder_Retrieve_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(ForwarderRetrievalRequest)
+func _MediationRegistration_Prove_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MediationRegistrationProofEncrypted)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(ForwarderServer).Retrieve(ctx, in)
+	out, err := srv.(MediationRegistrationServer).Prove(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-var _Forwarder_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "tanuki.Forwarder",
-	HandlerType: (*ForwarderServer)(nil),
+var _MediationRegistration_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "tanuki.MediationRegistration",
+	HandlerType: (*MediationRegistrationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _MediationRegistration_Register_Handler,
+		},
+		{
+			MethodName: "Prove",
+			Handler:    _MediationRegistration_Prove_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for CNAuthority service
+
+type CNAuthorityClient interface {
+	SignMediationRegistration(ctx context.Context, in *CNSignRequestEncrypted, opts ...grpc.CallOption) (*CNSignTicketEncrypted, error)
+}
+
+type cNAuthorityClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewCNAuthorityClient(cc *grpc.ClientConn) CNAuthorityClient {
+	return &cNAuthorityClient{cc}
+}
+
+func (c *cNAuthorityClient) SignMediationRegistration(ctx context.Context, in *CNSignRequestEncrypted, opts ...grpc.CallOption) (*CNSignTicketEncrypted, error) {
+	out := new(CNSignTicketEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.CNAuthority/SignMediationRegistration", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for CNAuthority service
+
+type CNAuthorityServer interface {
+	SignMediationRegistration(context.Context, *CNSignRequestEncrypted) (*CNSignTicketEncrypted, error)
+}
+
+func RegisterCNAuthorityServer(s *grpc.Server, srv CNAuthorityServer) {
+	s.RegisterService(&_CNAuthority_serviceDesc, srv)
+}
+
+func _CNAuthority_SignMediationRegistration_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(CNSignRequestEncrypted)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(CNAuthorityServer).SignMediationRegistration(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _CNAuthority_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "tanuki.CNAuthority",
+	HandlerType: (*CNAuthorityServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SignMediationRegistration",
+			Handler:    _CNAuthority_SignMediationRegistration_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Mediation service
+
+type MediationClient interface {
+	Request(ctx context.Context, in *MediationRequestEncrypted, opts ...grpc.CallOption) (*MediationTicketEncrypted, error)
+}
+
+type mediationClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMediationClient(cc *grpc.ClientConn) MediationClient {
+	return &mediationClient{cc}
+}
+
+func (c *mediationClient) Request(ctx context.Context, in *MediationRequestEncrypted, opts ...grpc.CallOption) (*MediationTicketEncrypted, error) {
+	out := new(MediationTicketEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.Mediation/Request", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Mediation service
+
+type MediationServer interface {
+	Request(context.Context, *MediationRequestEncrypted) (*MediationTicketEncrypted, error)
+}
+
+func RegisterMediationServer(s *grpc.Server, srv MediationServer) {
+	s.RegisterService(&_Mediation_serviceDesc, srv)
+}
+
+func _Mediation_Request_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MediationRequestEncrypted)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MediationServer).Request(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Mediation_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "tanuki.Mediation",
+	HandlerType: (*MediationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Request",
+			Handler:    _Mediation_Request_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for MediationForwarder service
+
+type MediationForwarderClient interface {
+	Store(ctx context.Context, in *MediationForwarderStorageRequestEncrypted, opts ...grpc.CallOption) (*StatusResponseEncrypted, error)
+}
+
+type mediationForwarderClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMediationForwarderClient(cc *grpc.ClientConn) MediationForwarderClient {
+	return &mediationForwarderClient{cc}
+}
+
+func (c *mediationForwarderClient) Store(ctx context.Context, in *MediationForwarderStorageRequestEncrypted, opts ...grpc.CallOption) (*StatusResponseEncrypted, error) {
+	out := new(StatusResponseEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.MediationForwarder/Store", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for MediationForwarder service
+
+type MediationForwarderServer interface {
+	Store(context.Context, *MediationForwarderStorageRequestEncrypted) (*StatusResponseEncrypted, error)
+}
+
+func RegisterMediationForwarderServer(s *grpc.Server, srv MediationForwarderServer) {
+	s.RegisterService(&_MediationForwarder_serviceDesc, srv)
+}
+
+func _MediationForwarder_Store_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MediationForwarderStorageRequestEncrypted)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MediationForwarderServer).Store(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _MediationForwarder_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "tanuki.MediationForwarder",
+	HandlerType: (*MediationForwarderServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Store",
-			Handler:    _Forwarder_Store_Handler,
+			Handler:    _MediationForwarder_Store_Handler,
 		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for MediationRetriever service
+
+type MediationRetrieverClient interface {
+	Retrieve(ctx context.Context, in *MediationRetrieverRequestEncrypted, opts ...grpc.CallOption) (*MediationRetrieverResponseEncrypted, error)
+	TicketRequest(ctx context.Context, in *MediationRetrieverTicketRequestEncrypted, opts ...grpc.CallOption) (*MediationRetrieverTicketChallengeEncrypted, error)
+	TicketProve(ctx context.Context, in *MediationRetrieverTicketProofEncrypted, opts ...grpc.CallOption) (*MediationRetrieverTicketEncrypted, error)
+}
+
+type mediationRetrieverClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMediationRetrieverClient(cc *grpc.ClientConn) MediationRetrieverClient {
+	return &mediationRetrieverClient{cc}
+}
+
+func (c *mediationRetrieverClient) Retrieve(ctx context.Context, in *MediationRetrieverRequestEncrypted, opts ...grpc.CallOption) (*MediationRetrieverResponseEncrypted, error) {
+	out := new(MediationRetrieverResponseEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.MediationRetriever/Retrieve", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediationRetrieverClient) TicketRequest(ctx context.Context, in *MediationRetrieverTicketRequestEncrypted, opts ...grpc.CallOption) (*MediationRetrieverTicketChallengeEncrypted, error) {
+	out := new(MediationRetrieverTicketChallengeEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.MediationRetriever/TicketRequest", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mediationRetrieverClient) TicketProve(ctx context.Context, in *MediationRetrieverTicketProofEncrypted, opts ...grpc.CallOption) (*MediationRetrieverTicketEncrypted, error) {
+	out := new(MediationRetrieverTicketEncrypted)
+	err := grpc.Invoke(ctx, "/tanuki.MediationRetriever/TicketProve", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for MediationRetriever service
+
+type MediationRetrieverServer interface {
+	Retrieve(context.Context, *MediationRetrieverRequestEncrypted) (*MediationRetrieverResponseEncrypted, error)
+	TicketRequest(context.Context, *MediationRetrieverTicketRequestEncrypted) (*MediationRetrieverTicketChallengeEncrypted, error)
+	TicketProve(context.Context, *MediationRetrieverTicketProofEncrypted) (*MediationRetrieverTicketEncrypted, error)
+}
+
+func RegisterMediationRetrieverServer(s *grpc.Server, srv MediationRetrieverServer) {
+	s.RegisterService(&_MediationRetriever_serviceDesc, srv)
+}
+
+func _MediationRetriever_Retrieve_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MediationRetrieverRequestEncrypted)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MediationRetrieverServer).Retrieve(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _MediationRetriever_TicketRequest_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MediationRetrieverTicketRequestEncrypted)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MediationRetrieverServer).TicketRequest(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _MediationRetriever_TicketProve_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MediationRetrieverTicketProofEncrypted)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MediationRetrieverServer).TicketProve(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _MediationRetriever_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "tanuki.MediationRetriever",
+	HandlerType: (*MediationRetrieverServer)(nil),
+	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Retrieve",
-			Handler:    _Forwarder_Retrieve_Handler,
+			Handler:    _MediationRetriever_Retrieve_Handler,
+		},
+		{
+			MethodName: "TicketRequest",
+			Handler:    _MediationRetriever_TicketRequest_Handler,
+		},
+		{
+			MethodName: "TicketProve",
+			Handler:    _MediationRetriever_TicketProve_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
