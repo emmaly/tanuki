@@ -1,11 +1,13 @@
 package main
 
 import (
+	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"errors"
 	"flag"
 	"fmt"
@@ -103,6 +105,19 @@ func (ir *identityRegistrar) Register(ctx context.Context, in *tanuki.IdentityRe
 
 	request := &tanuki.IdentityRegistrationRequest{}
 	err = proto.Unmarshal(payload, request)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Something happened.")
+	}
+
+	userPublicKey, err := x509.ParsePKIXPublicKey(request.PublicKey)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Something happened.")
+	}
+	signatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
+	signatureHash := sha256.Sum256(in.Payload)
+	err = rsa.VerifyPSS(userPublicKey.(*rsa.PublicKey), crypto.SHA256, signatureHash[:], in.Signature, signatureOptions)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
