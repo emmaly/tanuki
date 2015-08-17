@@ -17,6 +17,7 @@ var routerAddr = flag.String("r", "127.0.0.1:43968", "Router server IP:PORT")
 var mediator1Addr = flag.String("m1", "127.0.0.1:43969", "Mediator 1 server IP:PORT")
 var mediator2Addr = flag.String("m2", "127.0.0.1:43970", "Mediator 2 server IP:PORT")
 var forwarderAddr = flag.String("f", "127.0.0.1:43971", "Forwarder server IP:PORT")
+var identityRegistrarAddr = flag.String("ir", "127.0.0.1:43972", "Identity Registrar server IP:PORT")
 var recipientCN = flag.String("cn", "", "Recipient Common Name")
 
 type service struct {
