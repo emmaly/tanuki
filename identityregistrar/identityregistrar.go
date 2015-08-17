@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -14,6 +15,7 @@ import (
 	"runtime"
 
 	"github.com/dustywilson/tanuki"
+	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -71,7 +73,8 @@ func main() {
 }
 
 func (ir *identityRegistrar) Register(ctx context.Context, in *tanuki.IdentityRegistrationRequestEncrypted) (*tanuki.IdentityRegistrationChallengeEncrypted, error) {
-	// func DecryptOAEP(hash hash.Hash, random io.Reader, priv *PrivateKey, ciphertext []byte, label []byte) (msg []byte, err error)
+	// FIXME: it seems that for a lot of this code, we could throw it in a separate function or set of functions since we'll be doing pretty much exactly this over and over and over in all of our RPC functions and services
+
 	sha := sha256.New()
 	keyOut, err := rsa.DecryptOAEP(sha, rand.Reader, ir.privateKey, in.Key, nil) // WARNING: do not reuse this key
 	if err != nil {
@@ -81,13 +84,34 @@ func (ir *identityRegistrar) Register(ctx context.Context, in *tanuki.IdentityRe
 
 	// ???: Do we care to test the symmetric key strength before continuing?  We could decide it's too weak and just kill the client in order to enforce some reasonable minimum level of security.
 
-	block, err := aes.NewCipher(keyOut)
+	aesBlock, err := aes.NewCipher(keyOut)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
 	}
 
-	return nil, nil
+	gcm, err := cipher.NewGCM(aesBlock)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Something happened.")
+	}
+
+	payload, err := gcm.Open(nil, in.Nonce, in.Payload, nil) // ???: should we be making use of the data argument (position 4)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Something happened.")
+	}
+
+	request := &tanuki.IdentityRegistrationRequest{}
+	err = proto.Unmarshal(payload, request)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Something happened.")
+	}
+
+	log.Printf("Message:  <  %+v  >\n", request) // FIXME: remove
+
+	return nil, errors.New("Seems good, but the princess isn't yet in this castle.")
 }
 
 func (ir *identityRegistrar) Prove(ctx context.Context, in *tanuki.IdentityRegistrationProofEncrypted) (*tanuki.IdentityRegistrationTicketEncrypted, error) {

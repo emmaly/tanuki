@@ -86,8 +86,9 @@ var _ = proto.Marshal
 
 type StatusResponseEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *StatusResponseEncrypted) Reset()         { *m = StatusResponseEncrypted{} }
@@ -148,8 +149,9 @@ func (*Message) ProtoMessage()    {}
 // IdentityRegistrationRequest message encrypted by the identity registrar instance's public key
 type IdentityRegistrationRequestEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *IdentityRegistrationRequestEncrypted) Reset()         { *m = IdentityRegistrationRequestEncrypted{} }
@@ -170,8 +172,9 @@ func (*IdentityRegistrationRequest) ProtoMessage()    {}
 // IdentityRegistrationChallenge message encrypted by the requester's public key provided via IdentityRegistrationRequest message
 type IdentityRegistrationChallengeEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *IdentityRegistrationChallengeEncrypted) Reset() {
@@ -200,8 +203,9 @@ func (m *IdentityRegistrationChallenge) GetEncryptedRegistrationTicket() *Identi
 // ... to be created _and_ consumed by the identity registrar instance itself
 type IdentityRegistrationChallengeTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *IdentityRegistrationChallengeTicketEncrypted) Reset() {
@@ -232,8 +236,9 @@ func (m *IdentityRegistrationChallengeTicket) GetRequest() *IdentityRegistration
 // IdentityRegistrationProof message encrypted by the identity registrar instance's public key
 type IdentityRegistrationProofEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *IdentityRegistrationProofEncrypted) Reset()         { *m = IdentityRegistrationProofEncrypted{} }
@@ -262,8 +267,9 @@ func (m *IdentityRegistrationProof) GetEncryptedRegistrationTicket() *IdentityRe
 // IdentityRegistrationTicketSigned message encrypted by the requester's public key provided via IdentityRegistrationRequest message
 type IdentityRegistrationTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *IdentityRegistrationTicketEncrypted) Reset()         { *m = IdentityRegistrationTicketEncrypted{} }
@@ -303,8 +309,9 @@ func (*IdentityRegistrationTicket) ProtoMessage()    {}
 // MediationRegistrationRequest message encrypted by the mediation registrar instance's public key
 type MediationRegistrationRequestEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRegistrationRequestEncrypted) Reset()         { *m = MediationRegistrationRequestEncrypted{} }
@@ -325,8 +332,9 @@ func (*MediationRegistrationRequest) ProtoMessage()    {}
 // MediationRegistrationChallenge message encrypted by the requester's public key provided via MediationRegistrationRequest message
 type MediationRegistrationChallengeEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRegistrationChallengeEncrypted) Reset() {
@@ -356,8 +364,9 @@ func (m *MediationRegistrationChallenge) GetEncryptedRegistrationTicket() *Media
 // ... to be created _and_ consumed by the mediation registrar instance itself
 type MediationRegistrationChallengeTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRegistrationChallengeTicketEncrypted) Reset() {
@@ -388,8 +397,9 @@ func (m *MediationRegistrationChallengeTicket) GetRequest() *MediationRequest {
 // MediationRegistrationProof message encrypted by the mediation registrar instance's public key
 type MediationRegistrationProofEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRegistrationProofEncrypted) Reset()         { *m = MediationRegistrationProofEncrypted{} }
@@ -426,8 +436,9 @@ func (m *MediationRegistrationProof) GetCnTicket() *CNSignTicketEncrypted {
 // MediationRegistrationTicketSigned message encrypted by the requester's public key provided via MediationRegister message
 type MediationRegistrationTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRegistrationTicketEncrypted) Reset()         { *m = MediationRegistrationTicketEncrypted{} }
@@ -483,8 +494,9 @@ func (m *MediationRegistrationRecord) GetTicket() *MediationRegistrationTicketSi
 
 type CNSignRequestEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *CNSignRequestEncrypted) Reset()         { *m = CNSignRequestEncrypted{} }
@@ -506,8 +518,9 @@ func (*CNSignRequest) ProtoMessage()    {}
 
 type CNSignTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *CNSignTicketEncrypted) Reset()         { *m = CNSignTicketEncrypted{} }
@@ -529,8 +542,9 @@ func (*CNSignTicket) ProtoMessage()    {}
 
 type MediationRequestEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRequestEncrypted) Reset()         { *m = MediationRequestEncrypted{} }
@@ -558,8 +572,9 @@ func (m *MediationRequest) GetSenderDomainTicket() *DomainTicket {
 
 type MediationTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationTicketEncrypted) Reset()         { *m = MediationTicketEncrypted{} }
@@ -591,8 +606,9 @@ func (m *MediationTicket) GetTicket() *MediationKeyTicketEncrypted {
 // ??? this probably isn't a ticket
 type MediationKeyTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationKeyTicketEncrypted) Reset()         { *m = MediationKeyTicketEncrypted{} }
@@ -614,8 +630,9 @@ func (*MediationKeyTicket) ProtoMessage()    {}
 
 type MediationForwarderStorageRequestEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationForwarderStorageRequestEncrypted) Reset() {
@@ -661,8 +678,9 @@ func (m *MediationForwarderMessage) GetTicket() []*MediationTicket {
 
 type MediationRetrieverRequestEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRetrieverRequestEncrypted) Reset()         { *m = MediationRetrieverRequestEncrypted{} }
@@ -715,8 +733,9 @@ func (m *MediationRetrieverResponse) GetPayload() []*MediationRetrieverMessage {
 
 type MediationRetrieverMessage struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRetrieverMessage) Reset()         { *m = MediationRetrieverMessage{} }
@@ -725,8 +744,9 @@ func (*MediationRetrieverMessage) ProtoMessage()    {}
 
 type MediationRetrieverTicketRequestEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRetrieverTicketRequestEncrypted) Reset() {
@@ -748,8 +768,9 @@ func (*MediationRetrieverTicketRequest) ProtoMessage()    {}
 // MediationRetrieverChallenge message encrypted by the requester's public key provided via MediationRetrieverRequest message
 type MediationRetrieverTicketChallengeEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRetrieverTicketChallengeEncrypted) Reset() {
@@ -780,8 +801,9 @@ func (m *MediationRetrieverTicketChallenge) GetEncryptedRegistrationTicket() *Id
 // ... to be created _and_ consumed by the identity registrar instance itself
 type MediationRetrieverTicketChallengeTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRetrieverTicketChallengeTicketEncrypted) Reset() {
@@ -814,8 +836,9 @@ func (m *MediationRetrieverTicketChallengeTicket) GetRequest() *MediationRetriev
 // MediationRetrieverProof message encrypted by the retriever instance's public key
 type MediationRetrieverTicketProofEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRetrieverTicketProofEncrypted) Reset() {
@@ -844,8 +867,9 @@ func (m *MediationRetrieverTicketProof) GetEncryptedRegistrationTicket() *Mediat
 // MediationRetrieverTicketSigned message encrypted by the requester's public key provided via IMediationRetrieverTicketRequest message
 type MediationRetrieverTicketEncrypted struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Payload   []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
 func (m *MediationRetrieverTicketEncrypted) Reset()         { *m = MediationRetrieverTicketEncrypted{} }
