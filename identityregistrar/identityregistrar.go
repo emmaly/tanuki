@@ -51,6 +51,7 @@ func main() {
 	if *debug {
 		pk := tanuki.PublicKeyFingerprint(privateKey.Public().(*rsa.PublicKey))
 		fmt.Printf("Public Key Fingerprint: %s\n", pk.String())
+		fmt.Printf("Public Key:\n\tE: %d\n\tN: %s\n", privateKey.Public().(*rsa.PublicKey).E, privateKey.Public().(*rsa.PublicKey).N)
 	}
 
 	// FIXME: this should register with something that proves this service instance has any authority (should that service block insufficiently-sized keys?)
@@ -81,8 +82,6 @@ func (ir *identityRegistrar) Register(ctx context.Context, in *tanuki.IdentityRe
 		log.Println(err)
 		return nil, errors.New("Something happened.")
 	}
-
-	// ???: Do we care to test the symmetric key strength before continuing?  We could decide it's too weak and just kill the client in order to enforce some reasonable minimum level of security.
 
 	aesBlock, err := aes.NewCipher(keyOut)
 	if err != nil {
