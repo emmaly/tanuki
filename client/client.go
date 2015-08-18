@@ -1,9 +1,6 @@
 package main
 
 import (
-	"crypto"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -15,8 +12,6 @@ import (
 	"runtime"
 
 	"github.com/dustywilson/tanuki"
-	"github.com/golang/protobuf/proto"
-	"golang.org/x/crypto/sha3"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -80,40 +75,6 @@ func registerIdentity() (interface{}, error) {
 		return nil, errors.New("Something happened.")
 	}
 
-	if *debug {
-		pk := tanuki.PublicKeyFingerprint(privateKey.Public().(*rsa.PublicKey))
-		fmt.Printf("Public Key Fingerprint: %s\n", pk.String())
-	}
-
-	identityRegistrarPublicKey, identityRegistrarAddr, err := tanuki.LookupService("identityregistrar")
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Something happened.")
-	}
-
-	key := make([]byte, 32) // must be a multiple of 16
-	rand.Read(key)
-	fmt.Printf("KEY: %x\n", key)
-
-	sha := sha3.New256()
-	keyOut, err := rsa.EncryptOAEP(sha, rand.Reader, identityRegistrarPublicKey, key, nil) // WARNING: do not reuse this key
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Something happened.")
-	}
-
-	aesBlock, err := aes.NewCipher(key)
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Something happened.")
-	}
-
-	gcm, err := cipher.NewGCM(aesBlock)
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Something happened.")
-	}
-
 	innerNonce := make([]byte, 32)
 	rand.Read(innerNonce)
 
@@ -123,36 +84,18 @@ func registerIdentity() (interface{}, error) {
 		PublicKey:                     publicKeyMarshaled,
 		SomeSortOfAuthenticationProof: []byte("I'm queen of France!"),
 	}
-	payload, err := proto.Marshal(rawRequest)
+
+	identityRegistrarPublicKey, identityRegistrarAddr, err := tanuki.LookupService("identityregistrar")
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
 	}
 
-	nonce := make([]byte, gcm.NonceSize())
-	rand.Read(nonce)
-	payloadEncrypted := gcm.Seal(nil, nonce, payload, nil) // ???: should we be making use of the data argument (position 4)
+	message, err := tanuki.MarshalMessage(privateKey, identityRegistrarPublicKey, rawRequest)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
 	}
-
-	signatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
-	signatureHash := sha3.Sum256(payloadEncrypted)
-	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA3_256, signatureHash[:], signatureOptions)
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Something happened.")
-	}
-
-	request := &tanuki.IdentityRegistrationRequestEncrypted{
-		Key:       keyOut,
-		Nonce:     nonce,
-		Payload:   payloadEncrypted,
-		Signature: signature,
-	}
-
-	log.Printf("Message:  <  %+v  >\n", request) // FIXME: remove
 
 	conn, err := grpc.Dial(identityRegistrarAddr)
 	if err != nil {
@@ -160,8 +103,9 @@ func registerIdentity() (interface{}, error) {
 		return nil, errors.New("Something happened.")
 	}
 
+	out := tanuki.IdentityRegistrationRequestEncrypted(*message)
 	c := tanuki.NewIdentityRegistrationClient(conn)
-	response, err := c.Register(context.Background(), request)
+	response, err := c.Register(context.Background(), &out)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")

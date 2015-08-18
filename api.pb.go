@@ -9,7 +9,7 @@ It is generated from these files:
 	api.proto
 
 It has these top-level messages:
-	StatusResponseEncrypted
+	EncryptedEnvelope
 	StatusResponse
 	DomainTicket
 	SubscriptionRequest
@@ -84,16 +84,16 @@ var _ grpc.ClientConn
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 
-type StatusResponseEncrypted struct {
+type EncryptedEnvelope struct {
 	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
 	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 }
 
-func (m *StatusResponseEncrypted) Reset()         { *m = StatusResponseEncrypted{} }
-func (m *StatusResponseEncrypted) String() string { return proto.CompactTextString(m) }
-func (*StatusResponseEncrypted) ProtoMessage()    {}
+func (m *EncryptedEnvelope) Reset()         { *m = EncryptedEnvelope{} }
+func (m *EncryptedEnvelope) String() string { return proto.CompactTextString(m) }
+func (*EncryptedEnvelope) ProtoMessage()    {}
 
 type StatusResponse struct {
 	Timestamp        uint32 `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
@@ -1308,7 +1308,7 @@ var _Mediation_serviceDesc = grpc.ServiceDesc{
 // Client API for MediationForwarder service
 
 type MediationForwarderClient interface {
-	Store(ctx context.Context, in *MediationForwarderStorageRequestEncrypted, opts ...grpc.CallOption) (*StatusResponseEncrypted, error)
+	Store(ctx context.Context, in *MediationForwarderStorageRequestEncrypted, opts ...grpc.CallOption) (*EncryptedEnvelope, error)
 }
 
 type mediationForwarderClient struct {
@@ -1319,8 +1319,8 @@ func NewMediationForwarderClient(cc *grpc.ClientConn) MediationForwarderClient {
 	return &mediationForwarderClient{cc}
 }
 
-func (c *mediationForwarderClient) Store(ctx context.Context, in *MediationForwarderStorageRequestEncrypted, opts ...grpc.CallOption) (*StatusResponseEncrypted, error) {
-	out := new(StatusResponseEncrypted)
+func (c *mediationForwarderClient) Store(ctx context.Context, in *MediationForwarderStorageRequestEncrypted, opts ...grpc.CallOption) (*EncryptedEnvelope, error) {
+	out := new(EncryptedEnvelope)
 	err := grpc.Invoke(ctx, "/tanuki.MediationForwarder/Store", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -1331,7 +1331,7 @@ func (c *mediationForwarderClient) Store(ctx context.Context, in *MediationForwa
 // Server API for MediationForwarder service
 
 type MediationForwarderServer interface {
-	Store(context.Context, *MediationForwarderStorageRequestEncrypted) (*StatusResponseEncrypted, error)
+	Store(context.Context, *MediationForwarderStorageRequestEncrypted) (*EncryptedEnvelope, error)
 }
 
 func RegisterMediationForwarderServer(s *grpc.Server, srv MediationForwarderServer) {

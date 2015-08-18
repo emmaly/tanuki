@@ -5,7 +5,7 @@ package tanuki;
 
 // COMMON
 
-message StatusResponseEncrypted {
+message EncryptedEnvelope {
   bytes key = 1; // one-time use to decrypt payload; if empty, use session key (if exists)
   bytes nonce = 2; // one-time use; not secret
   bytes payload = 3;
@@ -340,7 +340,7 @@ message MediationKeyTicket {
 // MEDIATION FORWARDER
 
 service MediationForwarder {
-  rpc Store(MediationForwarderStorageRequestEncrypted) returns (StatusResponseEncrypted) {}
+  rpc Store(MediationForwarderStorageRequestEncrypted) returns (EncryptedEnvelope) {}
 }
 
 message MediationForwarderStorageRequestEncrypted {
