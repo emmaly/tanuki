@@ -12,7 +12,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/big"
 	"os"
 	"runtime"
 
@@ -27,7 +26,6 @@ var routerAddr = flag.String("r", "127.0.0.1:43968", "Router server IP:PORT")
 var mediator1Addr = flag.String("m1", "127.0.0.1:43969", "Mediator 1 server IP:PORT")
 var mediator2Addr = flag.String("m2", "127.0.0.1:43970", "Mediator 2 server IP:PORT")
 var forwarderAddr = flag.String("f", "127.0.0.1:43971", "Forwarder server IP:PORT")
-var identityRegistrarAddr = flag.String("ir", "127.0.0.1:43972", "Identity Registrar server IP:PORT")
 var recipientCN = flag.String("cn", "", "Recipient Common Name")
 var privateKeySize = flag.Int("kb", 4096, "Key size in bits")
 
@@ -87,12 +85,10 @@ func registerIdentity() (interface{}, error) {
 		fmt.Printf("Public Key Fingerprint: %s\n", pk.String())
 	}
 
-	n := new(big.Int)
-	n.SetString("122491761457998783781659184971071875759471291526064599005247521251147124093744116704969777575925239074657250550413817871930683267784185542382907034293545563655223632968941977662615577390674325810649648351057400422901523816238358031695579234803529318207709513029298742110134957365355237908752115711291431653979", 10)
-	// FIXME: update the above and below values to match whatever comes out of the init step of the IdentityRegistrar service.  It won't be the same each time.
-	identityRegistrarPublicKey := &rsa.PublicKey{
-		E: 65537,
-		N: n,
+	identityRegistrarPublicKey, identityRegistrarAddr, err := tanuki.LookupService("identityregistrar")
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Something happened.")
 	}
 
 	key := make([]byte, 32) // must be a multiple of 16
@@ -158,7 +154,7 @@ func registerIdentity() (interface{}, error) {
 
 	log.Printf("Message:  <  %+v  >\n", request) // FIXME: remove
 
-	conn, err := grpc.Dial(*identityRegistrarAddr)
+	conn, err := grpc.Dial(identityRegistrarAddr)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")

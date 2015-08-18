@@ -32,6 +32,8 @@ var debug = flag.Bool("debug", false, "Show debugging output?")
 var identityRegistrarAddr = flag.String("ir", "127.0.0.1:43972", "Identity Registrar server IP:PORT")
 var privateKeySize = flag.Int("kb", 4096, "Key size in bits")
 
+var serviceName = "identityregistrar" // ???
+
 func main() {
 	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -57,7 +59,12 @@ func main() {
 	}
 
 	// FIXME: this should register with something that proves this service instance has any authority (should that service block insufficiently-sized keys?)
-
+	err = tanuki.RegisterService(serviceName, *identityRegistrarAddr, privateKey.Public().(*rsa.PublicKey))
+	if err != nil {
+		fmt.Println(" ERROR.")
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	// FIXME: this should register with something to inject this service instance into the discovery system (should that service block insufficiently-sized keys?)
 
 	grpcServer := grpc.NewServer()
