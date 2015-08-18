@@ -17,7 +17,12 @@ func NewPrivateKey(bits int) (*rsa.PrivateKey, error) {
 	if bits <= 0 {
 		bits = 4096
 	}
-	return rsa.GenerateKey(rand.Reader, bits)
+	privateKey, err := rsa.GenerateKey(rand.Reader, bits)
+	if err != nil {
+		return nil, err
+	}
+	RegisterPublicKey(privateKey.Public().(*rsa.PublicKey))
+	return privateKey, nil
 }
 
 // PublicKeyFingerprint returns a Bumble-specific SHA256 fingerprint of the rsa.PublicKey
