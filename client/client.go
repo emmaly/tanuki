@@ -6,7 +6,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
 	"crypto/x509"
 	"errors"
 	"flag"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/dustywilson/tanuki"
 	"github.com/golang/protobuf/proto"
+	"golang.org/x/crypto/sha3"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -95,7 +95,7 @@ func registerIdentity() (interface{}, error) {
 	rand.Read(key)
 	fmt.Printf("KEY: %x\n", key)
 
-	sha := sha256.New()
+	sha := sha3.New256()
 	keyOut, err := rsa.EncryptOAEP(sha, rand.Reader, identityRegistrarPublicKey, key, nil) // WARNING: do not reuse this key
 	if err != nil {
 		log.Println(err)
@@ -138,8 +138,8 @@ func registerIdentity() (interface{}, error) {
 	}
 
 	signatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
-	signatureHash := sha256.Sum256(payloadEncrypted)
-	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, signatureHash[:], signatureOptions)
+	signatureHash := sha3.Sum256(payloadEncrypted)
+	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA3_256, signatureHash[:], signatureOptions)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")

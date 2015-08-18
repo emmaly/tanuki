@@ -6,7 +6,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
 	"crypto/x509"
 	"errors"
 	"flag"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/dustywilson/tanuki"
 	"github.com/golang/protobuf/proto"
+	"golang.org/x/crypto/sha3"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -85,7 +85,7 @@ func main() {
 func (ir *identityRegistrar) Register(ctx context.Context, in *tanuki.IdentityRegistrationRequestEncrypted) (*tanuki.IdentityRegistrationChallengeEncrypted, error) {
 	// FIXME: it seems that for a lot of this code, we could throw it in a separate function or set of functions since we'll be doing pretty much exactly this over and over and over in all of our RPC functions and services
 
-	sha := sha256.New()
+	sha := sha3.New256()
 	keyOut, err := rsa.DecryptOAEP(sha, rand.Reader, ir.privateKey, in.Key, nil) // WARNING: do not reuse this key
 	if err != nil {
 		log.Println(err)
@@ -123,8 +123,8 @@ func (ir *identityRegistrar) Register(ctx context.Context, in *tanuki.IdentityRe
 		return nil, errors.New("Something happened.")
 	}
 	signatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
-	signatureHash := sha256.Sum256(in.Payload)
-	err = rsa.VerifyPSS(userPublicKey.(*rsa.PublicKey), crypto.SHA256, signatureHash[:], in.Signature, signatureOptions)
+	signatureHash := sha3.Sum256(in.Payload)
+	err = rsa.VerifyPSS(userPublicKey.(*rsa.PublicKey), crypto.SHA3_256, signatureHash[:], in.Signature, signatureOptions)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
