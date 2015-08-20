@@ -15,15 +15,11 @@ It has these top-level messages:
 	SubscriptionRequest
 	Envelope
 	Message
-	IdentityRegistrationRequestEncrypted
 	IdentityRegistrationRequest
-	IdentityRegistrationChallengeEncrypted
 	IdentityRegistrationChallenge
 	IdentityRegistrationChallengeTicketEncrypted
 	IdentityRegistrationChallengeTicket
-	IdentityRegistrationProofEncrypted
 	IdentityRegistrationProof
-	IdentityRegistrationTicketEncrypted
 	IdentityRegistrationTicketSigned
 	IdentityRegistrationTicket
 	MediationRegistrationRequestEncrypted
@@ -85,10 +81,12 @@ var _ grpc.ClientConn
 var _ = proto.Marshal
 
 type EncryptedEnvelope struct {
-	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
+	Key              []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	PayloadNonce     []byte `protobuf:"bytes,2,opt,name=payload_nonce,proto3" json:"payload_nonce,omitempty"`
+	Payload          []byte `protobuf:"bytes,10,opt,name=payload,proto3" json:"payload,omitempty"`
+	PayloadSignature []byte `protobuf:"bytes,11,opt,name=payload_signature,proto3" json:"payload_signature,omitempty"`
+	PublicKeyNonce   []byte `protobuf:"bytes,20,opt,name=public_key_nonce,proto3" json:"public_key_nonce,omitempty"`
+	PublicKey        []byte `protobuf:"bytes,21,opt,name=public_key,proto3" json:"public_key,omitempty"`
 }
 
 func (m *EncryptedEnvelope) Reset()         { *m = EncryptedEnvelope{} }
@@ -146,18 +144,6 @@ func (m *Message) Reset()         { *m = Message{} }
 func (m *Message) String() string { return proto.CompactTextString(m) }
 func (*Message) ProtoMessage()    {}
 
-// IdentityRegistrationRequest message encrypted by the identity registrar instance's public key
-type IdentityRegistrationRequestEncrypted struct {
-	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
-}
-
-func (m *IdentityRegistrationRequestEncrypted) Reset()         { *m = IdentityRegistrationRequestEncrypted{} }
-func (m *IdentityRegistrationRequestEncrypted) String() string { return proto.CompactTextString(m) }
-func (*IdentityRegistrationRequestEncrypted) ProtoMessage()    {}
-
 type IdentityRegistrationRequest struct {
 	SenderDomain                  string `protobuf:"bytes,1,opt,name=sender_domain" json:"sender_domain,omitempty"`
 	Nonce                         []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
@@ -168,20 +154,6 @@ type IdentityRegistrationRequest struct {
 func (m *IdentityRegistrationRequest) Reset()         { *m = IdentityRegistrationRequest{} }
 func (m *IdentityRegistrationRequest) String() string { return proto.CompactTextString(m) }
 func (*IdentityRegistrationRequest) ProtoMessage()    {}
-
-// IdentityRegistrationChallenge message encrypted by the requester's public key provided via IdentityRegistrationRequest message
-type IdentityRegistrationChallengeEncrypted struct {
-	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
-}
-
-func (m *IdentityRegistrationChallengeEncrypted) Reset() {
-	*m = IdentityRegistrationChallengeEncrypted{}
-}
-func (m *IdentityRegistrationChallengeEncrypted) String() string { return proto.CompactTextString(m) }
-func (*IdentityRegistrationChallengeEncrypted) ProtoMessage()    {}
 
 type IdentityRegistrationChallenge struct {
 	EncryptedRegistrationTicket                             *IdentityRegistrationChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
@@ -202,7 +174,6 @@ func (m *IdentityRegistrationChallenge) GetEncryptedRegistrationTicket() *Identi
 // IdentityRegistrationChallengeTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
 // ... to be created _and_ consumed by the identity registrar instance itself
 type IdentityRegistrationChallengeTicketEncrypted struct {
-	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
 	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
@@ -233,18 +204,6 @@ func (m *IdentityRegistrationChallengeTicket) GetRequest() *IdentityRegistration
 	return nil
 }
 
-// IdentityRegistrationProof message encrypted by the identity registrar instance's public key
-type IdentityRegistrationProofEncrypted struct {
-	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
-}
-
-func (m *IdentityRegistrationProofEncrypted) Reset()         { *m = IdentityRegistrationProofEncrypted{} }
-func (m *IdentityRegistrationProofEncrypted) String() string { return proto.CompactTextString(m) }
-func (*IdentityRegistrationProofEncrypted) ProtoMessage()    {}
-
 type IdentityRegistrationProof struct {
 	EncryptedRegistrationTicket                             *IdentityRegistrationChallengeTicketEncrypted `protobuf:"bytes,1,opt,name=encrypted_registration_ticket" json:"encrypted_registration_ticket,omitempty"`
 	IdentityRegistrarSignatureOfEncryptedRegistrationTicket []byte                                        `protobuf:"bytes,2,opt,name=identity_registrar_signature_of_encrypted_registration_ticket,proto3" json:"identity_registrar_signature_of_encrypted_registration_ticket,omitempty"`
@@ -263,18 +222,6 @@ func (m *IdentityRegistrationProof) GetEncryptedRegistrationTicket() *IdentityRe
 	}
 	return nil
 }
-
-// IdentityRegistrationTicketSigned message encrypted by the requester's public key provided via IdentityRegistrationRequest message
-type IdentityRegistrationTicketEncrypted struct {
-	Key       []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
-	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
-}
-
-func (m *IdentityRegistrationTicketEncrypted) Reset()         { *m = IdentityRegistrationTicketEncrypted{} }
-func (m *IdentityRegistrationTicketEncrypted) String() string { return proto.CompactTextString(m) }
-func (*IdentityRegistrationTicketEncrypted) ProtoMessage()    {}
 
 // IdentityRegistrationTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted
 type IdentityRegistrationTicketSigned struct {
@@ -1026,8 +973,7 @@ var _Router_serviceDesc = grpc.ServiceDesc{
 // Client API for IdentityRegistration service
 
 type IdentityRegistrationClient interface {
-	Register(ctx context.Context, in *IdentityRegistrationRequestEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationChallengeEncrypted, error)
-	Prove(ctx context.Context, in *IdentityRegistrationProofEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationTicketEncrypted, error)
+	Register(ctx context.Context, opts ...grpc.CallOption) (IdentityRegistration_RegisterClient, error)
 }
 
 type identityRegistrationClient struct {
@@ -1038,73 +984,85 @@ func NewIdentityRegistrationClient(cc *grpc.ClientConn) IdentityRegistrationClie
 	return &identityRegistrationClient{cc}
 }
 
-func (c *identityRegistrationClient) Register(ctx context.Context, in *IdentityRegistrationRequestEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationChallengeEncrypted, error) {
-	out := new(IdentityRegistrationChallengeEncrypted)
-	err := grpc.Invoke(ctx, "/tanuki.IdentityRegistration/Register", in, out, c.cc, opts...)
+func (c *identityRegistrationClient) Register(ctx context.Context, opts ...grpc.CallOption) (IdentityRegistration_RegisterClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_IdentityRegistration_serviceDesc.Streams[0], c.cc, "/tanuki.IdentityRegistration/Register", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &identityRegistrationRegisterClient{stream}
+	return x, nil
 }
 
-func (c *identityRegistrationClient) Prove(ctx context.Context, in *IdentityRegistrationProofEncrypted, opts ...grpc.CallOption) (*IdentityRegistrationTicketEncrypted, error) {
-	out := new(IdentityRegistrationTicketEncrypted)
-	err := grpc.Invoke(ctx, "/tanuki.IdentityRegistration/Prove", in, out, c.cc, opts...)
-	if err != nil {
+type IdentityRegistration_RegisterClient interface {
+	Send(*EncryptedEnvelope) error
+	Recv() (*EncryptedEnvelope, error)
+	grpc.ClientStream
+}
+
+type identityRegistrationRegisterClient struct {
+	grpc.ClientStream
+}
+
+func (x *identityRegistrationRegisterClient) Send(m *EncryptedEnvelope) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *identityRegistrationRegisterClient) Recv() (*EncryptedEnvelope, error) {
+	m := new(EncryptedEnvelope)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	return out, nil
+	return m, nil
 }
 
 // Server API for IdentityRegistration service
 
 type IdentityRegistrationServer interface {
-	Register(context.Context, *IdentityRegistrationRequestEncrypted) (*IdentityRegistrationChallengeEncrypted, error)
-	Prove(context.Context, *IdentityRegistrationProofEncrypted) (*IdentityRegistrationTicketEncrypted, error)
+	Register(IdentityRegistration_RegisterServer) error
 }
 
 func RegisterIdentityRegistrationServer(s *grpc.Server, srv IdentityRegistrationServer) {
 	s.RegisterService(&_IdentityRegistration_serviceDesc, srv)
 }
 
-func _IdentityRegistration_Register_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(IdentityRegistrationRequestEncrypted)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(IdentityRegistrationServer).Register(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+func _IdentityRegistration_Register_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(IdentityRegistrationServer).Register(&identityRegistrationRegisterServer{stream})
 }
 
-func _IdentityRegistration_Prove_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(IdentityRegistrationProofEncrypted)
-	if err := codec.Unmarshal(buf, in); err != nil {
+type IdentityRegistration_RegisterServer interface {
+	Send(*EncryptedEnvelope) error
+	Recv() (*EncryptedEnvelope, error)
+	grpc.ServerStream
+}
+
+type identityRegistrationRegisterServer struct {
+	grpc.ServerStream
+}
+
+func (x *identityRegistrationRegisterServer) Send(m *EncryptedEnvelope) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *identityRegistrationRegisterServer) Recv() (*EncryptedEnvelope, error) {
+	m := new(EncryptedEnvelope)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	out, err := srv.(IdentityRegistrationServer).Prove(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+	return m, nil
 }
 
 var _IdentityRegistration_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "tanuki.IdentityRegistration",
 	HandlerType: (*IdentityRegistrationServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "Register",
-			Handler:    _IdentityRegistration_Register_Handler,
-		},
-		{
-			MethodName: "Prove",
-			Handler:    _IdentityRegistration_Prove_Handler,
+			StreamName:    "Register",
+			Handler:       _IdentityRegistration_Register_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
-	Streams: []grpc.StreamDesc{},
 }
 
 // Client API for MediationRegistration service

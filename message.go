@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/golang/protobuf/proto"
@@ -16,7 +17,7 @@ import (
 )
 
 // MarshalMessage packages, encrypts, and signs outgoing structured messages
-func MarshalMessage(senderPrivateKey *rsa.PrivateKey, receiverPublicKey *rsa.PublicKey, message proto.Message) (*EncryptedEnvelope, error) {
+func MarshalMessage(senderPrivateKey *rsa.PrivateKey, providePublicKey bool, receiverPublicKey *rsa.PublicKey, message proto.Message) (*EncryptedEnvelope, error) {
 	key := make([]byte, 32) // must be a multiple of 16
 	rand.Read(key)
 	fmt.Printf("KEY: %x\n", key)
@@ -46,27 +47,38 @@ func MarshalMessage(senderPrivateKey *rsa.PrivateKey, receiverPublicKey *rsa.Pub
 		return nil, errors.New("Something happened.")
 	}
 
-	nonce := make([]byte, gcm.NonceSize())
-	rand.Read(nonce)
-	payloadEncrypted := gcm.Seal(nil, nonce, payload, nil) // ???: should we be making use of the data argument (position 4)
+	payloadNonce := make([]byte, gcm.NonceSize())
+	rand.Read(payloadNonce)
+	payloadEncrypted := gcm.Seal(nil, payloadNonce, payload, nil) // ???: should we be making use of the data argument (position 4)
+
+	payloadSignatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
+	payloadSignatureHash := sha3.Sum256(payloadEncrypted)
+	payloadSignature, err := rsa.SignPSS(rand.Reader, senderPrivateKey, crypto.SHA3_256, payloadSignatureHash[:], payloadSignatureOptions)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
 	}
 
-	signatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
-	signatureHash := sha3.Sum256(payloadEncrypted)
-	signature, err := rsa.SignPSS(rand.Reader, senderPrivateKey, crypto.SHA3_256, signatureHash[:], signatureOptions)
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Something happened.")
+	var publicKeyNonce []byte
+	var publicKeyEncrypted []byte
+	if providePublicKey {
+		senderPublicKeyMarshaled, err := x509.MarshalPKIXPublicKey(senderPrivateKey.Public().(*rsa.PublicKey))
+		if err != nil {
+			log.Println(err)
+			return nil, errors.New("Something happened.")
+		}
+		publicKeyNonce = make([]byte, gcm.NonceSize())
+		rand.Read(publicKeyNonce)
+		publicKeyEncrypted = gcm.Seal(nil, publicKeyNonce, senderPublicKeyMarshaled, nil)
 	}
 
 	request := &EncryptedEnvelope{
-		Key:       keyOut,
-		Nonce:     nonce,
-		Payload:   payloadEncrypted,
-		Signature: signature,
+		Key:              keyOut,
+		PublicKeyNonce:   publicKeyNonce,
+		PublicKey:        publicKeyEncrypted,
+		PayloadNonce:     payloadNonce,
+		Payload:          payloadEncrypted,
+		PayloadSignature: payloadSignature,
 	}
 
 	return request, nil
@@ -75,54 +87,46 @@ func MarshalMessage(senderPrivateKey *rsa.PrivateKey, receiverPublicKey *rsa.Pub
 // UnmarshalMessage decrypts, verifies, and unwraps inbound structured messages
 //
 // senderPublicKeyExtractor should be nil unless you need to extract the key from the payload itself.
-func UnmarshalMessage(receiverPrivateKey *rsa.PrivateKey, senderPublicKey *rsa.PublicKey, senderPublicKeyExtractor func(proto.Message) ([]byte, error), message proto.Message, dst proto.Message) error {
-	in := message.(*EncryptedEnvelope)
-
+func UnmarshalMessage(myPrivateKey *rsa.PrivateKey, theirPublicKey *rsa.PublicKey, theirPublicKeyAllowUpdate bool, message *EncryptedEnvelope, dst proto.Message) error {
 	sha := sha3.New256()
-	keyOut, err := rsa.DecryptOAEP(sha, rand.Reader, receiverPrivateKey, in.Key, nil) // WARNING: do not reuse this key
+	keyOut, err := rsa.DecryptOAEP(sha, rand.Reader, myPrivateKey, message.Key, nil) // WARNING: do not reuse this key
 	if err != nil {
 		log.Println(err)
 		return errors.New("Something happened.")
 	}
 
-	aesBlock, err := aes.NewCipher(keyOut)
-	if err != nil {
-		log.Println(err)
-		return errors.New("Something happened.")
-	}
-
-	gcm, err := cipher.NewGCM(aesBlock)
-	if err != nil {
-		log.Println(err)
-		return errors.New("Something happened.")
-	}
-
-	payload, err := gcm.Open(nil, in.Nonce, in.Payload, nil) // ???: should we be making use of the data argument (position 4)
-	if err != nil {
-		log.Println(err)
-		return errors.New("Something happened.")
-	}
-
-	err = proto.Unmarshal(payload, dst)
-	if err != nil {
-		log.Println(err)
-		return errors.New("Something happened.")
-	}
-
-	if senderPublicKeyExtractor != nil {
-		extractedPublicKey, err := senderPublicKeyExtractor(dst)
-		parsedPublicKey, err := x509.ParsePKIXPublicKey(extractedPublicKey)
+	if theirPublicKeyAllowUpdate && message.PublicKeyNonce != nil && message.PublicKey != nil {
+		aesBlock, err := aes.NewCipher(keyOut)
 		if err != nil {
 			log.Println(err)
 			return errors.New("Something happened.")
 		}
-		senderPublicKey = parsedPublicKey.(*rsa.PublicKey)
+
+		gcm, err := cipher.NewGCM(aesBlock)
+		if err != nil {
+			log.Println(err)
+			return errors.New("Something happened.")
+		}
+
+		publicKey, err := gcm.Open(nil, message.PublicKeyNonce, message.PublicKey, nil) // ???: should we be making use of the data argument (position 4)
+		if err != nil {
+			log.Println(err)
+			return errors.New("Something happened.")
+		}
+
+		parsedPublicKey, err := x509.ParsePKIXPublicKey(publicKey)
+		if err != nil {
+			log.Println(err)
+			return errors.New("Something happened.")
+		}
+
+		*theirPublicKey = *(parsedPublicKey.(*rsa.PublicKey))
 	}
 
-	if senderPublicKey != nil {
-		signatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
-		signatureHash := sha3.Sum256(in.Payload)
-		err = rsa.VerifyPSS(senderPublicKey, crypto.SHA3_256, signatureHash[:], in.Signature, signatureOptions)
+	if theirPublicKey != nil {
+		payloadSignatureOptions := &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthAuto}
+		payloadSignatureHash := sha3.Sum256(message.Payload)
+		err = rsa.VerifyPSS(theirPublicKey, crypto.SHA3_256, payloadSignatureHash[:], message.PayloadSignature, payloadSignatureOptions)
 		if err != nil {
 			dst = nil
 			log.Println(err)
@@ -139,5 +143,104 @@ func UnmarshalMessage(receiverPrivateKey *rsa.PrivateKey, senderPublicKey *rsa.P
 		// ... the other option is to just let continue along.  I think maybe that's foolish.
 	}
 
+	aesBlock, err := aes.NewCipher(keyOut)
+	if err != nil {
+		log.Println(err)
+		return errors.New("Something happened.")
+	}
+
+	gcm, err := cipher.NewGCM(aesBlock)
+	if err != nil {
+		log.Println(err)
+		return errors.New("Something happened.")
+	}
+
+	payload, err := gcm.Open(nil, message.PayloadNonce, message.Payload, nil) // ???: should we be making use of the data argument (position 4)
+	if err != nil {
+		log.Println(err)
+		return errors.New("Something happened.")
+	}
+
+	err = proto.Unmarshal(payload, dst)
+	if err != nil {
+		log.Println(err)
+		return errors.New("Something happened.")
+	}
+
 	return nil
+}
+
+// SendRecvr has both Send() and Recv() using EncryptedEnvelope
+type SendRecvr interface {
+	Send(*EncryptedEnvelope) error
+	Recv() (*EncryptedEnvelope, error)
+}
+
+// BidirectionalStreamer handles everything
+func BidirectionalStreamer(myPrivateKey *rsa.PrivateKey, providePublicKeyOnFirstMessage bool, theirPublicKey *rsa.PublicKey, receiverPublicKeyAllowUpdate bool, stream SendRecvr) (inbound <-chan proto.Message, outbound chan<- proto.Message, quit <-chan struct{}, errs <-chan error) {
+	providePublicKey := providePublicKeyOnFirstMessage
+
+	inboundChan := make(chan proto.Message)
+	outboundChan := make(chan proto.Message)
+	quitChan := make(chan struct{})
+	errChan := make(chan error)
+
+	go func(stream SendRecvr) {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				log.Println("streamRecv EOF")
+				close(quitChan)
+				return
+			}
+			if err != nil {
+				errChan <- err
+				close(quitChan)
+				return
+			}
+			message := &IdentityRegistrationRequest{}
+			err = UnmarshalMessage(myPrivateKey, theirPublicKey, receiverPublicKeyAllowUpdate, in, message)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			inboundChan <- message
+		}
+	}(stream)
+
+	go func(stream SendRecvr) {
+		for {
+			select {
+			case out, ok := <-outboundChan:
+				if !ok {
+					log.Println("outboundChan closed")
+					close(quitChan)
+					return
+				}
+				message, err := MarshalMessage(myPrivateKey, providePublicKey, theirPublicKey, out)
+				if err != nil {
+					errChan <- err
+					return
+				}
+				providePublicKey = false
+
+				err = stream.Send(message)
+				if err == io.EOF {
+					log.Println("streamSend EOF")
+					return
+				}
+				if err != nil {
+					errChan <- err
+					close(quitChan)
+					return
+				}
+			case <-quitChan:
+				log.Println("quitChan closed")
+				close(inboundChan)
+				return
+			}
+		}
+	}(stream)
+
+	return inboundChan, outboundChan, quitChan, errChan
 }

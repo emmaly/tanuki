@@ -6,10 +6,14 @@ package tanuki;
 // COMMON
 
 message EncryptedEnvelope {
-  bytes key = 1; // one-time use to decrypt payload; if empty, use session key (if exists)
-  bytes nonce = 2; // one-time use; not secret
-  bytes payload = 3;
-  bytes signature = 4; // of payload
+  bytes key = 1; // one-time use to decrypt payload and public_key; if empty, use pre-established session key or bail out
+  //
+  bytes public_key_nonce = 10; // for sender's public key; leave empty unless required; one-time use; not secret
+  bytes public_key = 11; // sender's public key; leave empty unless required; encrypted with key (decrypted field #1)
+  //
+  bytes payload_nonce = 20; // for payload; one-time use; not secret
+  bytes payload = 21; // marshaled protobuf payload; encrypted with key (decrypted field #1)
+  bytes payload_signature = 22; // of payload; verify against sender's public key
 }
 
 message StatusResponse {
@@ -56,16 +60,7 @@ message Message {
 // IDENTITY REGISTRATION
 
 service IdentityRegistration {
-  rpc Register(IdentityRegistrationRequestEncrypted) returns (IdentityRegistrationChallengeEncrypted) {}
-  rpc Prove(IdentityRegistrationProofEncrypted) returns (IdentityRegistrationTicketEncrypted) {}
-}
-
-// IdentityRegistrationRequest message encrypted by the identity registrar instance's public key
-message IdentityRegistrationRequestEncrypted {
-  bytes key = 1; // one-time use to decrypt payload; if empty, use session key (if exists)
-  bytes nonce = 2; // one-time use; not secret
-  bytes payload = 3;
-  bytes signature = 4; // of payload
+  rpc Register(stream EncryptedEnvelope) returns (stream EncryptedEnvelope) {}
 }
 
 message IdentityRegistrationRequest {
@@ -73,14 +68,6 @@ message IdentityRegistrationRequest {
   bytes nonce = 2;
   bytes public_key = 3;
   bytes some_sort_of_authentication_proof = 10;
-}
-
-// IdentityRegistrationChallenge message encrypted by the requester's public key provided via IdentityRegistrationRequest message
-message IdentityRegistrationChallengeEncrypted {
-  bytes key = 1; // one-time use to decrypt payload; if empty, use session key (if exists)
-  bytes nonce = 2; // one-time use; not secret
-  bytes payload = 3;
-  bytes signature = 4; // of payload
 }
 
 message IdentityRegistrationChallenge {
@@ -91,7 +78,6 @@ message IdentityRegistrationChallenge {
 // IdentityRegistrationChallengeTicket message encrypted by the identity registrar instance's super-secret IdentityRegistrationTicket private key used only for this purpose
 // ... to be created _and_ consumed by the identity registrar instance itself
 message IdentityRegistrationChallengeTicketEncrypted {
-  bytes key = 1; // one-time use to decrypt payload; if empty, use session key (if exists)
   bytes nonce = 2; // one-time use; not secret
   bytes payload = 3;
   bytes signature = 4; // of payload
@@ -103,28 +89,12 @@ message IdentityRegistrationChallengeTicket {
   IdentityRegistrationRequest request = 3;
 }
 
-// IdentityRegistrationProof message encrypted by the identity registrar instance's public key
-message IdentityRegistrationProofEncrypted {
-  bytes key = 1; // one-time use to decrypt payload; if empty, use session key (if exists)
-  bytes nonce = 2; // one-time use; not secret
-  bytes payload = 3;
-  bytes signature = 4; // of payload
-}
-
 message IdentityRegistrationProof {
   IdentityRegistrationChallengeTicketEncrypted encrypted_registration_ticket = 1;
   bytes identity_registrar_signature_of_encrypted_registration_ticket = 2;
   uint32 valid_after = 10;
   uint32 valid_before = 11;
   string recipient_domain = 20;
-}
-
-// IdentityRegistrationTicketSigned message encrypted by the requester's public key provided via IdentityRegistrationRequest message
-message IdentityRegistrationTicketEncrypted {
-  bytes key = 1; // one-time use to decrypt payload; if empty, use session key (if exists)
-  bytes nonce = 2; // one-time use; not secret
-  bytes payload = 3;
-  bytes signature = 4; // of payload
 }
 
 // IdentityRegistrationTicket signed by the identity registrar instance's private key; ticket is signed, not encrypted

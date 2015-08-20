@@ -6,12 +6,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"runtime"
 
 	"github.com/dustywilson/tanuki"
-	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -76,25 +76,59 @@ func main() {
 	panic(grpcServer.Serve(l))
 }
 
-func (ir *identityRegistrar) Register(ctx context.Context, in *tanuki.IdentityRegistrationRequestEncrypted) (*tanuki.IdentityRegistrationChallengeEncrypted, error) {
-	message := tanuki.EncryptedEnvelope(*in)
-	request := &tanuki.IdentityRegistrationRequest{}
-	err := tanuki.UnmarshalMessage(
-		ir.privateKey,
-		nil,
-		func(irr proto.Message) ([]byte, error) {
-			return irr.(*tanuki.IdentityRegistrationRequest).PublicKey, nil
-		},
-		&message,
-		request,
-	)
-	if err != nil {
-		return nil, err
+func (ir *identityRegistrar) Register(stream tanuki.IdentityRegistration_RegisterServer) error {
+	theirPublicKey := new(rsa.PublicKey)
+	fmt.Printf("EH? %t\n", theirPublicKey == nil)
+	inbound, outbound, quit, errs := tanuki.BidirectionalStreamer(ir.privateKey, false, theirPublicKey, true, stream)
+
+	for {
+		log.Printf("THEIR PUBLIC KEY loop: %+v\n", theirPublicKey)
+		select {
+		case in, ok := <-inbound:
+			if !ok {
+				close(outbound)
+				log.Println("CLOSED INBOUND")
+				return errors.New("Closed inbound")
+			}
+			log.Printf("REQUEST:  <  %+v  >\n", in) // FIXME: remove
+			log.Printf("THEIR PUBLIC KEY received: %+v\n", theirPublicKey)
+		case <-quit:
+			log.Println("QUIT")
+			return errors.New("Quit")
+		case err := <-errs:
+			log.Printf("ERROR: %s\n", err)
+		}
 	}
 
-	return nil, errors.New("Seems good, but the princess isn't yet in this castle.")
+	// for {
+	// 	in, err := stream.Recv()
+	// 	if err == io.EOF {
+	// 		return nil
+	// 	}
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	request := &tanuki.IdentityRegistrationRequest{}
+	// 	err = tanuki.UnmarshalMessage(
+	// 		ir.privateKey,
+	// 		nil,
+	// 		func(irr proto.Message) ([]byte, error) {
+	// 			return irr.(*tanuki.IdentityRegistrationRequest).PublicKey, nil
+	// 		},
+	// 		in,
+	// 		request,
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	log.Printf("REQUEST:  <  %+v  >\n", request) // FIXME: remove
+	//
+	// 	if err = stream.Send(nil); err != nil {
+	// 		return err
+	// 	}
+	// }
 }
 
-func (ir *identityRegistrar) Prove(ctx context.Context, in *tanuki.IdentityRegistrationProofEncrypted) (*tanuki.IdentityRegistrationTicketEncrypted, error) {
+func (ir *identityRegistrar) Prove(ctx context.Context, in *tanuki.EncryptedEnvelope) (*tanuki.EncryptedEnvelope, error) {
 	return nil, nil
 }

@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/dustywilson/tanuki"
 	"golang.org/x/net/context"
@@ -78,20 +79,7 @@ func registerIdentity() (interface{}, error) {
 	innerNonce := make([]byte, 32)
 	rand.Read(innerNonce)
 
-	rawRequest := &tanuki.IdentityRegistrationRequest{
-		SenderDomain:                  "bumbleserver.org",
-		Nonce:                         innerNonce,
-		PublicKey:                     publicKeyMarshaled,
-		SomeSortOfAuthenticationProof: []byte("I'm queen of France!"),
-	}
-
 	identityRegistrarPublicKey, identityRegistrarAddr, err := tanuki.LookupService("identityregistrar")
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Something happened.")
-	}
-
-	message, err := tanuki.MarshalMessage(privateKey, identityRegistrarPublicKey, rawRequest)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
@@ -102,17 +90,64 @@ func registerIdentity() (interface{}, error) {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
 	}
+	defer conn.Close()
 
-	out := tanuki.IdentityRegistrationRequestEncrypted(*message)
 	c := tanuki.NewIdentityRegistrationClient(conn)
-	response, err := c.Register(context.Background(), &out)
+	stream, err := c.Register(context.Background())
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Something happened.")
 	}
+	defer stream.CloseSend()
 
-	log.Printf("Message:  <  %+v  >\n", response) // FIXME: remove
+	inbound, outbound, quit, errs := tanuki.BidirectionalStreamer(privateKey, true, identityRegistrarPublicKey, false, stream)
 
+	state := 0
+stateloop:
+	for {
+		log.Println("stateloop")
+		select {
+		case <-quit:
+			log.Println("stateloop quit")
+			break stateloop
+		case err := <-errs:
+			log.Printf("ERROR: %s\n", err)
+		case in, ok := <-inbound:
+			log.Printf("stateloop inbound %t\n", ok)
+			if !ok {
+				log.Println("stateloop inbound closed")
+				break stateloop
+			}
+			log.Printf("INBOUND:  <  %+v  >\n", in) // FIXME: remove
+		case <-time.After(time.Millisecond * 100):
+			log.Println("stateloop tick")
+			if state == 0 {
+				log.Println("stateloop send state 0 message")
+				outbound <- &tanuki.IdentityRegistrationRequest{
+					SenderDomain:                  "bumbleserver.org",
+					Nonce:                         innerNonce,
+					PublicKey:                     publicKeyMarshaled,
+					SomeSortOfAuthenticationProof: []byte("I'm queen of France!"),
+				}
+				state++
+			} else if state == 1 {
+				log.Println("stateloop send state 1 message")
+				outbound <- &tanuki.IdentityRegistrationRequest{
+					SenderDomain:                  "bumbleserver.org",
+					Nonce:                         innerNonce,
+					PublicKey:                     publicKeyMarshaled,
+					SomeSortOfAuthenticationProof: []byte("I'm queen of Moon!"),
+				}
+				state++
+			} else {
+				log.Println("stateloop close outbound and break")
+				close(outbound)
+				break stateloop
+			}
+		}
+	}
+
+	log.Println("stateloop exited")
 	return nil, nil
 }
 
